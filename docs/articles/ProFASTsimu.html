@@ -81,7 +81,7 @@
       <h1 data-toc-skip>ProFAST: simulation</h1>
                         <h4 data-toc-skip class="author">Wei Liu</h4>
             
-            <h4 data-toc-skip class="date">2023-06-04</h4>
+            <h4 data-toc-skip class="date">2023-06-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/feiyoung/ProFAST/blob/HEAD/vignettes/ProFASTsimu.Rmd" class="external-link"><code>vignettes/ProFASTsimu.Rmd</code></a></small>
       <div class="hidden name"><code>ProFASTsimu.Rmd</code></div>
@@ -99,7 +99,7 @@
 </ul>
 <p>We demonstrate the use of ProFAST to three simulated ST data that are <a href="https://github.com/feiyoung/ProFAST/tree/main/vignettes_data" class="external-link">here</a>, which can be downloaded to the current working path by the following command:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">githubURL</span> <span class="op">&lt;-</span> <span class="st">"https://github.com/feiyoung/ProFAST/blob/main/vignettes_data/simu3.rda?raw=true"</span>
+<code class="sourceCode R"><span class="va">githubURL</span> <span class="op">&lt;-</span> <span class="st">"https://github.com/feiyoung/ProFAST/blob/main/vignettes_data/simu3.rds?raw=true"</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="va">githubURL</span>,<span class="st">"simu3.rds"</span>,mode<span class="op">=</span><span class="st">'wb'</span><span class="op">)</span></code></pre></div>
 <p>Then load to R</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -290,17 +290,19 @@
 <span class="co">#&gt; iter = 11, ELBO= 208088775.191483, dELBO=0.000011 </span>
 <span class="co">#&gt; Satrt ICM step! </span>
 <span class="co">#&gt; iter = 12, ELBO= 208090727.539180, dELBO=0.000009</span>
-<span class="co">#&gt; 2023-06-04 17:20:38 : ***** Finish ProFAST, 0.086 mins elapsed.</span>
+<span class="co">#&gt; 2023-06-06 20:37:30 : ***** Finish ProFAST, 0.046 mins elapsed.</span>
 <span class="co">### Check the results</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">resList</span><span class="op">)</span>
 <span class="co">#&gt; List of 1</span>
 <span class="co">#&gt;  $ ProFAST:List of 7</span>
 <span class="co">#&gt;   ..$ hV      :List of 3</span>
-<span class="co">#&gt;   .. ..$ : num [1:625, 1:15] -3.14 -4.92 -7.39 -2.64 -2.6 ...</span>
-<span class="co">#&gt;   .. ..$ : num [1:400, 1:15] -9.35 -3.52 -1.85 -5.17 -7.29 ...</span>
-<span class="co">#&gt;   .. ..$ : num [1:900, 1:15] -2.61 -5.68 -4.25 -8.76 -6.06 ...</span>
-<span class="co">#&gt;   .. ..- attr(*, "dim")= int [1:2] 3 1</span>
-<span class="co">#&gt;   ..$ nu      : num [1:3, 1:197] 1.215 4.362 -0.1 -0.245 -0.606 ...</span>
+<span class="co">#&gt;   .. ..$ : num [1:625, 1:15] -2.27 -4.05 -6.52 -1.77 -1.74 ...</span>
+<span class="co">#&gt;   .. .. ..- attr(*, "scaled:center")= num [1:15] -0.867 -0.848 -2.528 0.32 1.01 ...</span>
+<span class="co">#&gt;   .. ..$ : num [1:400, 1:15] -9.32 -3.48 -1.82 -5.13 -7.25 ...</span>
+<span class="co">#&gt;   .. .. ..- attr(*, "scaled:center")= num [1:15] -0.0347 0.7836 -0.8125 -0.9521 3.9392 ...</span>
+<span class="co">#&gt;   .. ..$ : num [1:900, 1:15] 1.019 -2.055 -0.624 -5.129 -2.433 ...</span>
+<span class="co">#&gt;   .. .. ..- attr(*, "scaled:center")= num [1:15] -3.627 -0.795 1.606 1.231 -3.135 ...</span>
+<span class="co">#&gt;   ..$ nu      : num [1:3, 1:197] 1.037 4.191 -1.12 -0.305 -0.44 ...</span>
 <span class="co">#&gt;   ..$ Psi     : num [1:15, 1:15, 1:3] 29.685 3.493 -0.744 -2.433 -0.368 ...</span>
 <span class="co">#&gt;   ..$ W       : num [1:197, 1:15] 0.16046 -0.07676 -0.08422 -0.00717 -0.03362 ...</span>
 <span class="co">#&gt;   ..$ Lam     : num [1:3, 1:197] 1.84 2.4 1.14 1.61 1.12 ...</span>
@@ -325,48 +327,50 @@
 <span class="va">MacVec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">seulist</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu"><a href="../reference/get_r2_mcfadden.html">get_r2_mcfadden</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">resList</span><span class="op">$</span><span class="va">ProFAST</span><span class="op">$</span><span class="va">hV</span><span class="op">[[</span><span class="va">r</span><span class="op">]</span><span class="op">]</span>, <span class="va">yList</span><span class="op">[[</span><span class="va">r</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; # weights:  119 (96 variable)</span>
 <span class="co">#&gt; initial  value 1216.193843 </span>
-<span class="co">#&gt; iter  10 value 136.386643</span>
-<span class="co">#&gt; iter  20 value 96.309683</span>
-<span class="co">#&gt; iter  30 value 86.964583</span>
-<span class="co">#&gt; iter  40 value 83.075516</span>
-<span class="co">#&gt; iter  50 value 80.851663</span>
-<span class="co">#&gt; iter  60 value 79.354351</span>
-<span class="co">#&gt; iter  70 value 78.664113</span>
-<span class="co">#&gt; iter  80 value 78.019780</span>
-<span class="co">#&gt; iter  90 value 77.845920</span>
-<span class="co">#&gt; iter 100 value 77.780941</span>
-<span class="co">#&gt; final  value 77.780941 </span>
+<span class="co">#&gt; iter  10 value 114.780227</span>
+<span class="co">#&gt; iter  20 value 92.092862</span>
+<span class="co">#&gt; iter  30 value 85.341446</span>
+<span class="co">#&gt; iter  40 value 82.688874</span>
+<span class="co">#&gt; iter  50 value 81.299335</span>
+<span class="co">#&gt; iter  60 value 79.578069</span>
+<span class="co">#&gt; iter  70 value 77.914256</span>
+<span class="co">#&gt; iter  80 value 77.803555</span>
+<span class="co">#&gt; iter  90 value 77.775020</span>
+<span class="co">#&gt; iter 100 value 77.773307</span>
+<span class="co">#&gt; final  value 77.773307 </span>
 <span class="co">#&gt; stopped after 100 iterations</span>
 <span class="co">#&gt; # weights:  119 (96 variable)</span>
 <span class="co">#&gt; initial  value 778.364060 </span>
-<span class="co">#&gt; iter  10 value 85.678029</span>
-<span class="co">#&gt; iter  20 value 43.657504</span>
-<span class="co">#&gt; iter  30 value 29.521611</span>
-<span class="co">#&gt; iter  40 value 22.595737</span>
-<span class="co">#&gt; iter  50 value 14.568658</span>
-<span class="co">#&gt; iter  60 value 1.436631</span>
-<span class="co">#&gt; iter  70 value 0.003170</span>
-<span class="co">#&gt; iter  80 value 0.000205</span>
-<span class="co">#&gt; final  value 0.000059 </span>
-<span class="co">#&gt; converged</span>
+<span class="co">#&gt; iter  10 value 116.386127</span>
+<span class="co">#&gt; iter  20 value 28.870844</span>
+<span class="co">#&gt; iter  30 value 7.501395</span>
+<span class="co">#&gt; iter  40 value 3.686866</span>
+<span class="co">#&gt; iter  50 value 1.472696</span>
+<span class="co">#&gt; iter  60 value 0.878809</span>
+<span class="co">#&gt; iter  70 value 0.613061</span>
+<span class="co">#&gt; iter  80 value 0.417069</span>
+<span class="co">#&gt; iter  90 value 0.287838</span>
+<span class="co">#&gt; iter 100 value 0.159742</span>
+<span class="co">#&gt; final  value 0.159742 </span>
+<span class="co">#&gt; stopped after 100 iterations</span>
 <span class="co">#&gt; # weights:  119 (96 variable)</span>
 <span class="co">#&gt; initial  value 1751.319134 </span>
-<span class="co">#&gt; iter  10 value 169.782995</span>
-<span class="co">#&gt; iter  20 value 142.819546</span>
-<span class="co">#&gt; iter  30 value 126.174504</span>
-<span class="co">#&gt; iter  40 value 118.356166</span>
-<span class="co">#&gt; iter  50 value 114.895200</span>
-<span class="co">#&gt; iter  60 value 113.806101</span>
-<span class="co">#&gt; iter  70 value 113.605023</span>
-<span class="co">#&gt; iter  80 value 113.501592</span>
-<span class="co">#&gt; iter  90 value 113.441868</span>
-<span class="co">#&gt; iter 100 value 113.284082</span>
-<span class="co">#&gt; final  value 113.284082 </span>
+<span class="co">#&gt; iter  10 value 147.392347</span>
+<span class="co">#&gt; iter  20 value 126.553241</span>
+<span class="co">#&gt; iter  30 value 119.448945</span>
+<span class="co">#&gt; iter  40 value 118.722384</span>
+<span class="co">#&gt; iter  50 value 117.568144</span>
+<span class="co">#&gt; iter  60 value 115.680333</span>
+<span class="co">#&gt; iter  70 value 113.602190</span>
+<span class="co">#&gt; iter  80 value 113.298580</span>
+<span class="co">#&gt; iter  90 value 113.270105</span>
+<span class="co">#&gt; iter 100 value 113.254185</span>
+<span class="co">#&gt; final  value 113.254185 </span>
 <span class="co">#&gt; stopped after 100 iterations</span>
 <span class="co">### output them</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">MacVec</span><span class="op">)</span>
 <span class="co">#&gt; adjusted McFadden's R2 adjusted McFadden's R2 adjusted McFadden's R2 </span>
-<span class="co">#&gt;              0.9348547              0.9986976              0.9343725</span></code></pre></div>
+<span class="co">#&gt;              0.9348610              0.9984897              0.9343897</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -381,12 +385,8 @@
 <span class="co">#&gt; Harmony 3/10</span>
 <span class="co">#&gt; Harmony 4/10</span>
 <span class="co">#&gt; Harmony 5/10</span>
-<span class="co">#&gt; Harmony 6/10</span>
-<span class="co">#&gt; Harmony 7/10</span>
-<span class="co">#&gt; Harmony 8/10</span>
-<span class="co">#&gt; Harmony 9/10</span>
-<span class="co">#&gt; Harmony 10/10</span>
-<span class="co">#&gt; 2023-06-04 17:20:44 : ***** Finish Harmony correction, 0.09 mins elapsed.</span>
+<span class="co">#&gt; Harmony converged after 5 iterations</span>
+<span class="co">#&gt; 2023-06-06 20:37:33 : ***** Finish Harmony correction, 0.039 mins elapsed.</span>
 <span class="co">#&gt; ******Use Louvain to cluster and determine the number of clusters...</span>
 <span class="co">#&gt; Warning: No assay specified, setting assay as RNA by default.</span>
 <span class="co">#&gt; Warning: Keys should be one or more alphanumeric characters followed by an</span>
@@ -398,16 +398,16 @@
 <span class="co">#&gt; Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Number of nodes: 1925</span>
-<span class="co">#&gt; Number of edges: 83190</span>
+<span class="co">#&gt; Number of edges: 83023</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Running Louvain algorithm...</span>
-<span class="co">#&gt; Maximum modularity in 10 random starts: 0.8811</span>
+<span class="co">#&gt; Maximum modularity in 10 random starts: 0.8788</span>
 <span class="co">#&gt; Number of communities: 7</span>
 <span class="co">#&gt; Elapsed time: 0 seconds</span>
-<span class="co">#&gt; 2023-06-04 17:20:46 : ***** Finsh Louvain clustering and find the optimal number of clusters, 0.027 mins elapsed.</span>
+<span class="co">#&gt; 2023-06-06 20:37:34 : ***** Finsh Louvain clustering and find the optimal number of clusters, 0.015 mins elapsed.</span>
 <span class="va">ARI_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">M</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu">mclust</span><span class="fu">::</span><span class="fu"><a href="https://mclust-org.github.io/mclust/reference/adjustedRandIndex.html" class="external-link">adjustedRandIndex</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">resList</span><span class="op">$</span><span class="va">Louvain</span><span class="op">$</span><span class="va">cluster</span><span class="op">[[</span><span class="va">r</span><span class="op">]</span><span class="op">]</span>, <span class="va">yList</span><span class="op">[[</span><span class="va">r</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ARI_vec</span><span class="op">)</span>
-<span class="co">#&gt; [1] 0.8120151 0.8288486 0.8212217</span></code></pre></div>
+<span class="co">#&gt; [1] 0.8315672 0.8625198 0.8126047</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="remove-unwanted-variations-in-the-log-normalized-expression-matrices">Remove unwanted variations in the log-normalized expression matrices<a class="anchor" aria-label="anchor" href="#remove-unwanted-variations-in-the-log-normalized-expression-matrices"></a>
@@ -418,30 +418,30 @@
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">resList</span><span class="op">$</span><span class="va">Harmony</span><span class="op">)</span>
 <span class="co">#&gt; List of 2</span>
 <span class="co">#&gt;  $ harmonyembed:List of 3</span>
-<span class="co">#&gt;   ..$ : num [1:625, 1:15] -3.65 -5.7 -8.2 -3.35 -3.5 ...</span>
-<span class="co">#&gt;   ..$ : num [1:400, 1:15] -10.11 -4.45 -2.95 -5.95 -7.61 ...</span>
-<span class="co">#&gt;   ..$ : num [1:900, 1:15] -0.771 -4.187 -2.678 -7.231 -4.868 ...</span>
+<span class="co">#&gt;   ..$ : num [1:625, 1:15] -2.19 -4.13 -6.67 -1.75 -2.28 ...</span>
+<span class="co">#&gt;   ..$ : num [1:400, 1:15] -8.96 -3.13 -1.87 -4.88 -6.04 ...</span>
+<span class="co">#&gt;   ..$ : num [1:900, 1:15] 1.143 -2.349 -0.894 -5.486 -2.931 ...</span>
 <span class="co">#&gt;  $ batchEmbed  :List of 3</span>
-<span class="co">#&gt;   ..$ : num [1:625, 1:15] 0.975 1.333 1.14 1.046 0.776 ...</span>
+<span class="co">#&gt;   ..$ : num [1:625, 1:15] -0.24035 0.00474 -0.02522 -0.05699 0.33849 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "dimnames")=List of 2</span>
 <span class="co">#&gt;   .. .. ..$ : chr [1:625] "1" "2" "3" "4" ...</span>
 <span class="co">#&gt;   .. .. ..$ : NULL</span>
-<span class="co">#&gt;   ..$ : num [1:400, 1:15] 0.902 1.44 1.775 1.102 0.362 ...</span>
+<span class="co">#&gt;   ..$ : num [1:400, 1:15] -0.4123 -0.4013 -0.0554 -0.3333 -1.3548 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "dimnames")=List of 2</span>
 <span class="co">#&gt;   .. .. ..$ : chr [1:400] "626" "627" "628" "629" ...</span>
 <span class="co">#&gt;   .. .. ..$ : NULL</span>
-<span class="co">#&gt;   ..$ : num [1:900, 1:15] -1.084 -0.957 -0.854 -0.661 -0.305 ...</span>
+<span class="co">#&gt;   ..$ : num [1:900, 1:15] -0.0506 0.1896 0.1548 0.0342 0.3375 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "dimnames")=List of 2</span>
 <span class="co">#&gt;   .. .. ..$ : chr [1:900] "1026" "1027" "1028" "1029" ...</span>
 <span class="co">#&gt;   .. .. ..$ : NULL</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">PRECASTObj</span><span class="op">@</span><span class="va">resList</span><span class="op">$</span><span class="va">Louvain</span><span class="op">)</span>
 <span class="co">#&gt; List of 1</span>
 <span class="co">#&gt;  $ cluster:List of 3</span>
-<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 3 5 5 5 1 5 1 2 1 4 ...</span>
+<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 6 2 2 2 3 2 4 1 2 5 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:625] "spot1" "spot2" "spot3" "spot4" ...</span>
-<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 5 4 6 5 1 1 1 1 2 2 ...</span>
+<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 2 5 4 2 3 3 3 3 1 1 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:400] "spot626" "spot627" "spot628" "spot629" ...</span>
-<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 3 3 3 3 6 4 6 4 3 4 ...</span>
+<span class="co">#&gt;   ..$ : Factor w/ 7 levels "0","1","2","3",..: 6 6 6 6 4 5 5 5 6 5 ...</span>
 <span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:900] "spot1026" "spot1027" "spot1028" "spot1029" ...</span></code></pre></div>
 <p>Then, we integrate the three sections by removing the unwanted variations and setting <code>seulist_HK=NULL</code> and <code>Method = "HarmonyLouvain"</code> in the function <code><a href="../reference/IntegrateSRTData.html">IntegrateSRTData()</a></code>. After obtaining <code>seuInt</code>, we will see there are three embeddings: <code>profast</code>, <code>harmony</code> and <code>position</code>, in the slot <code>seuInt@reductions</code>. <code>profast</code> are the embeddings obtained by ProFAST model fitting and are uncorrected embeddings that may includes the unwanted effects (i.e., batch effects); <code>harmony</code>are the embeddings obtained by Harmony fitting and are aligned embeddings; and <code>position</code> are the spatial coordinates.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
@@ -449,41 +449,41 @@
 <span class="va">seuInt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/IntegrateSRTData.html">IntegrateSRTData</a></span><span class="op">(</span><span class="va">PRECASTObj</span>, seulist_HK<span class="op">=</span><span class="va">seulist_HK</span>, Method <span class="op">=</span> <span class="st">"HarmonyLouvain"</span>, seuList_raw<span class="op">=</span><span class="cn">NULL</span>, covariates_use<span class="op">=</span><span class="cn">NULL</span>, verbose<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="co">#&gt; ******Perform PCA on housekeeping gene expression matrix...</span>
 <span class="co">#&gt; Only use  the results in Harmony and Louvain to remove unwanted variations...</span>
-<span class="co">#&gt; 2023-06-04 17:20:46 : ***** Finish PCA, 0 mins elapsed.</span>
+<span class="co">#&gt; 2023-06-06 20:37:34 : ***** Finish PCA, 0 mins elapsed.</span>
 <span class="co">#&gt; ******Remove the unwanted variations in gene expressions using spatial linear regression...</span>
 <span class="co">#&gt; Finish variable initialization </span>
-<span class="co">#&gt; iter = 2, ELBO= -474663.221028, dELBO=0.999779 </span>
-<span class="co">#&gt; iter = 3, ELBO= -420300.887276, dELBO=0.114528 </span>
-<span class="co">#&gt; iter = 4, ELBO= -396605.275468, dELBO=0.056378 </span>
-<span class="co">#&gt; iter = 5, ELBO= -380870.442805, dELBO=0.039674 </span>
-<span class="co">#&gt; iter = 6, ELBO= -372136.857065, dELBO=0.022931 </span>
-<span class="co">#&gt; iter = 7, ELBO= -367148.787354, dELBO=0.013404 </span>
-<span class="co">#&gt; iter = 8, ELBO= -364656.265563, dELBO=0.006789 </span>
-<span class="co">#&gt; iter = 9, ELBO= -363388.290038, dELBO=0.003477 </span>
-<span class="co">#&gt; iter = 10, ELBO= -362755.895142, dELBO=0.001740 </span>
-<span class="co">#&gt; iter = 11, ELBO= -362386.117596, dELBO=0.001019 </span>
-<span class="co">#&gt; iter = 12, ELBO= -362138.494983, dELBO=0.000683 </span>
-<span class="co">#&gt; iter = 13, ELBO= -361944.191634, dELBO=0.000537 </span>
-<span class="co">#&gt; iter = 14, ELBO= -361780.368425, dELBO=0.000453 </span>
-<span class="co">#&gt; iter = 15, ELBO= -361634.801993, dELBO=0.000402 </span>
-<span class="co">#&gt; iter = 16, ELBO= -361502.500058, dELBO=0.000366 </span>
-<span class="co">#&gt; iter = 17, ELBO= -361380.085585, dELBO=0.000339 </span>
-<span class="co">#&gt; iter = 18, ELBO= -361265.665804, dELBO=0.000317 </span>
-<span class="co">#&gt; iter = 19, ELBO= -361157.822466, dELBO=0.000299 </span>
-<span class="co">#&gt; iter = 20, ELBO= -361055.588754, dELBO=0.000283 </span>
-<span class="co">#&gt; iter = 21, ELBO= -360958.211511, dELBO=0.000270 </span>
-<span class="co">#&gt; iter = 22, ELBO= -360865.120154, dELBO=0.000258 </span>
-<span class="co">#&gt; iter = 23, ELBO= -360775.855060, dELBO=0.000247 </span>
-<span class="co">#&gt; iter = 24, ELBO= -360690.045647, dELBO=0.000238 </span>
-<span class="co">#&gt; iter = 25, ELBO= -360607.383672, dELBO=0.000229 </span>
-<span class="co">#&gt; iter = 26, ELBO= -360527.610314, dELBO=0.000221 </span>
-<span class="co">#&gt; iter = 27, ELBO= -360450.504254, dELBO=0.000214 </span>
-<span class="co">#&gt; iter = 28, ELBO= -360375.874293, dELBO=0.000207 </span>
-<span class="co">#&gt; iter = 29, ELBO= -360303.553250, dELBO=0.000201 </span>
-<span class="co">#&gt; iter = 30, ELBO= -360233.393650, dELBO=0.000195</span>
-<span class="co">#&gt; 2023-06-04 17:20:50 : ***** Finish unwanted variation removal, 0.053 mins elapsed.</span>
+<span class="co">#&gt; iter = 2, ELBO= -506059.111341, dELBO=0.999764 </span>
+<span class="co">#&gt; iter = 3, ELBO= -441635.737161, dELBO=0.127304 </span>
+<span class="co">#&gt; iter = 4, ELBO= -415220.082023, dELBO=0.059813 </span>
+<span class="co">#&gt; iter = 5, ELBO= -396081.727921, dELBO=0.046092 </span>
+<span class="co">#&gt; iter = 6, ELBO= -384044.227949, dELBO=0.030391 </span>
+<span class="co">#&gt; iter = 7, ELBO= -375892.948265, dELBO=0.021225 </span>
+<span class="co">#&gt; iter = 8, ELBO= -370736.090977, dELBO=0.013719 </span>
+<span class="co">#&gt; iter = 9, ELBO= -367314.756584, dELBO=0.009228 </span>
+<span class="co">#&gt; iter = 10, ELBO= -365042.010765, dELBO=0.006187 </span>
+<span class="co">#&gt; iter = 11, ELBO= -363428.051646, dELBO=0.004421 </span>
+<span class="co">#&gt; iter = 12, ELBO= -362239.146930, dELBO=0.003271 </span>
+<span class="co">#&gt; iter = 13, ELBO= -361317.545283, dELBO=0.002544 </span>
+<span class="co">#&gt; iter = 14, ELBO= -360585.560598, dELBO=0.002026 </span>
+<span class="co">#&gt; iter = 15, ELBO= -359989.346188, dELBO=0.001653 </span>
+<span class="co">#&gt; iter = 16, ELBO= -359497.531867, dELBO=0.001366 </span>
+<span class="co">#&gt; iter = 17, ELBO= -359086.408375, dELBO=0.001144 </span>
+<span class="co">#&gt; iter = 18, ELBO= -358739.978436, dELBO=0.000965 </span>
+<span class="co">#&gt; iter = 19, ELBO= -358445.622555, dELBO=0.000821 </span>
+<span class="co">#&gt; iter = 20, ELBO= -358194.067552, dELBO=0.000702 </span>
+<span class="co">#&gt; iter = 21, ELBO= -357977.844218, dELBO=0.000604 </span>
+<span class="co">#&gt; iter = 22, ELBO= -357791.173993, dELBO=0.000521 </span>
+<span class="co">#&gt; iter = 23, ELBO= -357629.328675, dELBO=0.000452 </span>
+<span class="co">#&gt; iter = 24, ELBO= -357488.521436, dELBO=0.000394 </span>
+<span class="co">#&gt; iter = 25, ELBO= -357365.610813, dELBO=0.000344 </span>
+<span class="co">#&gt; iter = 26, ELBO= -357258.018654, dELBO=0.000301 </span>
+<span class="co">#&gt; iter = 27, ELBO= -357163.581148, dELBO=0.000264 </span>
+<span class="co">#&gt; iter = 28, ELBO= -357080.491309, dELBO=0.000233 </span>
+<span class="co">#&gt; iter = 29, ELBO= -357007.218099, dELBO=0.000205 </span>
+<span class="co">#&gt; iter = 30, ELBO= -356942.466750, dELBO=0.000181</span>
+<span class="co">#&gt; 2023-06-06 20:37:37 : ***** Finish unwanted variation removal, 0.045 mins elapsed.</span>
 <span class="co">#&gt; ******Sort the results into a Seurat object...</span>
-<span class="co">#&gt; 2023-06-04 17:20:50 : ***** Finish results arrangement, 0.004 mins elapsed.</span>
+<span class="co">#&gt; 2023-06-06 20:37:37 : ***** Finish results arrangement, 0.003 mins elapsed.</span>
 <span class="va">seuInt</span>
 <span class="co">#&gt; An object of class Seurat </span>
 <span class="co">#&gt; 197 features across 1925 samples within 1 assay </span>
@@ -496,7 +496,8 @@
 <p>First, user can choose a beautiful color schema using <code><a href="https://rdrr.io/pkg/PRECAST/man/chooseColors.html" class="external-link">chooseColors()</a></code> in the R package <code>PRECAST</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cols_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PRECAST/man/chooseColors.html" class="external-link">chooseColors</a></span><span class="op">(</span>palettes_name <span class="op">=</span> <span class="st">"Nature 10"</span>, n_colors <span class="op">=</span> <span class="fl">7</span>, plot_colors <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<p><img src="ProFASTsimu_files/figure-html/unnamed-chunk-17-1.png" width="700"> Then, we plot the spatial scatter plot for clusters using the function <code><a href="https://rdrr.io/pkg/PRECAST/man/SpaPlot.html" class="external-link">SpaPlot()</a></code> in the R package <code>PRECAST</code>.</p>
+<p><img src="ProFASTsimu_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
+<p>Then, we plot the spatial scatter plot for clusters using the function <code><a href="https://rdrr.io/pkg/PRECAST/man/SpaPlot.html" class="external-link">SpaPlot()</a></code> in the R package <code>PRECAST</code>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PRECAST/man/SpaPlot.html" class="external-link">SpaPlot</a></span><span class="op">(</span><span class="va">seuInt</span>, item <span class="op">=</span> <span class="st">"cluster"</span>, batch <span class="op">=</span> <span class="cn">NULL</span>, point_size <span class="op">=</span> <span class="fl">1</span>, cols <span class="op">=</span> <span class="va">cols_cluster</span>, combine <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">p12</span></code></pre></div>

@@ -229,7 +229,9 @@ ProFAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "pois
                              epsLogLik=epsLogLik, verbose, homo = !error_heter, Psi_diag=Psi_diag)
     
   }
-  
+  ## Put the intercept term to nu
+  reslist$nu <- reslist$nu + t(reslist$W %*% sapply(reslist$hV, colMeans))
+  reslist$hV <- lapply(reslist$hV, scale, scale=FALSE)
   
   return(reslist)
 } 
@@ -653,10 +655,10 @@ correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL,
   }
  
   M <- length(XList);  p <- ncol(XList[[1]])
-  K <- ncol(RList[[1]]); q <- ncol(HList[[1]]); d <- ncol(Tm)
+  q <- ncol(HList[[1]]); d <- ncol(Tm)
   Xmat <- matlist2mat(XList)
   R <- matlist2mat(RList)
-  colnames(R) <- NULL
+  nvec <- sapply(XList, nrow)
   
   if(!is.null(covariateList)){
     # covariates <- matlist2mat(covariateList)
@@ -665,9 +667,13 @@ correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL,
     covariates <-  model.matrix.lm(object = ~.+1, data = covarites_df, na.action = "na.pass")
     rm(covariateList, covarites_df)
     R <- cbind(R, covariates[,-1])
+    
+    RList <- mat2list(R, nvec = nvec)
     rm(covariates)
   }
+  colnames(R) <- NULL
   
+  K <- ncol(RList[[1]]); 
   H <- matlist2mat(HList)
   colnames(H) <- NULL
   nvec <- sapply(RList, nrow)
@@ -705,6 +711,109 @@ correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL,
   correct_list <- list(XList_correct=lapply(1:M, function(j) XList[[j]] - HList[[j]] %*% reslist$gamma),
                        gammaj=reslist$gamma, alphaj=reslist$alpha, zetaj=reslist$zeta)
   
+
+  
+  return(correct_list)
+  
+}
+correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample_rate, 
+                                     covariateList=NULL, maxIter=30, epsELBO=1e-4, verbose=TRUE){
+  
+  dfList2df <- function(dfList){
+    
+    df <- dfList[[1]]
+    r_max <- length(dfList)
+    if(r_max>1){
+      for(r in 2:r_max){
+        df <- rbind(df, dfList[[r]])
+      }
+    }
+    
+    return(df)
+  }
+  
+  M <- length(XList);  p <- ncol(XList[[1]])
+  K <- ncol(RList[[1]]); q <- ncol(HList[[1]]); d <- ncol(Tm)
+  Xmat <- matlist2mat(XList)
+  R <- matlist2mat(RList)
+  colnames(R) <- NULL
+  
+  if(!is.null(covariateList)){
+    # covariates <- matlist2mat(covariateList)
+    # covariates <- as.matrix(covariates)
+    covarites_df <- dfList2df(covariateList)
+    covariates <-  model.matrix.lm(object = ~.+1, data = covarites_df, na.action = "na.pass")
+    rm(covariateList, covarites_df)
+    R <- cbind(R, covariates[,-1])
+    rm(covariates)
+  }
+  
+  # subsample_rate <- 0.1
+  index_List <- get_indexList(RList)
+  set.seed(1)
+  index_subsample <- sort(sample(sum(nvec), sum(nvec)*subsample_rate))
+  ## calculate the number of indices belonging to the index of each slide
+  nvec_subsample <- rep(NA, length(nvec))
+  for(i in 1:length(nvec_subsample)){
+    message("i = ", i)
+    
+    nvec_subsample[i] <- sum(index_subsample%in% index_List[[i]])
+  }
+  index_List_new <- lapply(RList, function(x) 1: nrow(x))
+  index_subsample_new <- unlist(index_List_new)[index_subsample]
+  index_subsampleList <- vec2list(index_subsample_new, nvec_subsample)
+  
+  XList_sub <- list(); RList_sub <- list(); HList_sub <- list()
+  AdjList_sub <- list()
+  for(i in 1:length(XList)){
+    message("i = ", i)
+    index_tmp <- index_subsampleList[[i]]
+    XList_sub[[i]] <- XList[[i]][index_tmp,]
+    RList_sub[[i]] <- RList[[i]][index_tmp, ]
+    HList_sub[[i]] <- HList[[i]][index_tmp, ]
+    AdjList_sub[[i]] <- AdjList[[i]][index_tmp, index_tmp]
+  }
+  
+  H <- matlist2mat(HList)
+  colnames(H) <- NULL
+  nvec <- sapply(RList, nrow)
+  TmList <- list()
+  for(m in 1:M){
+    TmList[[m]] <- matrix(Tm[m,], nrow=nvec[m], ncol=ncol(Tm), byrow=T)
+  }
+  TM <- matlist2mat(TmList)
+  
+  lm1 <- lm(Xmat~ R+H+TM+0)
+  coef_all <- coef(lm1)
+  rm(R, H, Xmat, lm1)
+  alphaj_int <- coef_all[paste0("R", 1:K),]
+  gammaj_int <- coef_all[paste0("H", 1:q),]
+  if(d == 1){
+    zetaj_int <- matrix(coef_all[paste0("TM"), ], nrow=1)
+  }else{
+    zetaj_int <- coef_all[paste0("TM", 1:d)]
+  }
+  if(sum(Tm)<1e-20){
+    if(ncol(Tm)>1){
+      stop("Tm must be a one-column matrix when it is full-zero!")
+    }else{
+      zetaj_int <- matrix(1, 1, p)
+    }
+  }
+  
+  
+  sigmaj_int <- matrix(1, M, p)
+  psij_int <- matrix(1,M, p)
+  
+  
+  # maxIter <- 30; epsELBO <- 1e-4; verbose<- TRUE
+  reslist <- correct_genes(XList, RList, HList, Tm, Adjlist=AdjList, sigmaj_int, psij_int, 
+                           alphaj_int, gammaj_int, zetaj_int, maxIter, epsELBO, verbose) 
+  
+  # str(reslist)
+  correct_list <- list(XList_correct=lapply(1:M, function(j) XList[[j]] - HList[[j]] %*% reslist$gamma),
+                       gammaj=reslist$gamma, alphaj=reslist$alpha, zetaj=reslist$zeta)
+  
   
   # for(m in 1:M){
   #   if(!any(sapply(XList, function(x) is.null(row.names(x))))){
@@ -719,6 +828,7 @@ correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL,
   return(correct_list)
   
 }
+
 
 
 #' Integrate multiple SRT data into a Seurat object

@@ -445,9 +445,27 @@
 # paramList <- generate_param(p=200)
 # seuList <- generate_seuList_pos(param = paramList, sd_signal = 2, sd_batch = 0.5)
 # seuList
+# 
+# library(iSC.MEB)
+# iSCMEBObj <- CreateiSCMEBObject(seuList = seuList, verbose = FALSE, premin.spots = 0, postmin.spots = 0)
 # # simu3 <- seuList
 # # save(simu3, file='simu3.rds')
+# iSCMEBObj <- CreateNeighbors(iSCMEBObj, platform = "ST")
+# ## run PCA to get low dimensional embeddings
+# iSCMEBObj <- runPCA(iSCMEBObj, npcs = 15, pca.method = "APCA")
+# ## Add a model setting in advance for an iSCMEBObj object. verbose = TRUE helps outputing the
+# ## information in the algorithm.
+# iSCMEBObj <- SetModelParameters(iSCMEBObj, verbose = TRUE)
+# iSCMEBObj <- iSCMEB(iSCMEBObj, K = 7)
+# iSCMEBObj <- SelectModel(iSCMEBObj)
+# LabelList <- lapply(iSCMEBObj@seulist, function(seu) seu@meta.data$Group)
+# ARI <- function(x, y) mclust::adjustedRandIndex(x, y)
+# ari_sections <- sapply(1:3, function(i) ARI(idents(iSCMEBObj)[[i]], LabelList[[i]]))
+# ari_all <- ARI(unlist(idents(iSCMEBObj)), unlist(LabelList))
+# print(ari_sections)
 # 
+# seuList <- simu3
+# library(ProFAST)
 # row.names(seuList[[1]])[1:10]
 # 
 # ## Get the gene-by-spot read count matrices
@@ -507,10 +525,11 @@
 # PRECASTObj <- RunHarmonyLouvain(PRECASTObj, resolution = 0.4)
 # lapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$Louvain$cluster[[r]], yList[[r]]))
 # 
-# # ## Run iSCMEB
-# # PRECASTObj <- RuniSCMEB(PRECASTObj, seed=2023, int.model= "EEE")
-# # str(PRECASTObj@resList$iSCMEB)
-# # lapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$iSCMEB$cluster[[r]], yList[[r]]))
+# 
+# ## Run iSCMEB
+# PRECASTObj <- RuniSCMEB(PRECASTObj, seed=2023)
+# str(PRECASTObj@resList$iSCMEB)
+# lapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$iSCMEB$cluster[[r]], yList[[r]]))
 # 
 # 
 # 
@@ -519,6 +538,19 @@
 # HKgenes <- SelectHKgenes(simu2, species= "Human", HK.number=200)
 # seulist_HK <- NULL
 # seuInt <- IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "HarmonyLouvain", seuList_raw=NULL, covariates_use=NULL, verbose=TRUE)
+# 
+# head(PRECASTObj@seulist[[1]]@meta.data)
+# ### try covariates
+# IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "HarmonyLouvain", 
+#                  seuList_raw=NULL, covariates_use=c("row", "col"), verbose=TRUE)
+# 
+# IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "HarmonyLouvain", 
+#                  seuList_raw=NULL, covariates_use=c("Group", "col"), verbose=TRUE)
+# 
+# IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "iSC-MEB", 
+#                  seuList_raw=NULL, covariates_use=c("Group", "col"), verbose=TRUE)
+# IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "iSC-MEB", 
+#                  seuList_raw=seuList, covariates_use=c("row", "col"), verbose=TRUE)
 # 
 # # seuInt <- IntegrateSRTData(PRECASTObj, seulist_HK=PRECASTObj@seulist, seuList_raw=dlpfc2)
 # library(Seurat)
@@ -536,8 +568,32 @@
 #                nrow.legend = 8)
 # 
 # 
-# ### Compare with  Harmony (based on PCA) + Louvain
+# #iSC-MEB ---------------------------------------
+# ## Visualize the batch effects
+# seuInt <- AddTSNE(seuInt, n_comp=2, reduction = 'profast', assay = 'ProFAST')
+# tsne2_profastp <- seuInt@reductions$tSNE
+# p_batch_profastp <- dimPlot(seuInt, item='batch')
+# seuInt$cluster_true <- factor(unlist(yList))
+# p_cluster_profastp <- dimPlot(seuInt, item='cluster_true', cols = cols_cluster)
+# drawFigs(list(p_batch_profastp, p_cluster_profastp), layout.dim = c(1,2))
 # 
+# 
+# ### see Harmony
+# seuInt <- AddTSNE(seuInt, n_comp=2, reduction = 'harmony', assay = 'ProFAST')
+# tsne2_harmony <- seuInt@reductions$tSNE
+# p_batch_harmony <- dimPlot(seuInt, item='batch')
+# p_cluster_harmony <- dimPlot(seuInt, item='cluster_true', cols = cols_cluster)
+# drawFigs(list(p_batch_harmony, p_cluster_harmony), layout.dim = c(1,2))
+# 
+# 
+# seuInt2 <- IntegrateSRTData(PRECASTObj, seulist_HK=NULL, Method = "iSC-MEB", seuList_raw=NULL, covariates_use=NULL, verbose=TRUE)
+# ## visualize the embed of iscmeb
+# seuInt2 <- AddTSNE(seuInt2, n_comp=2, reduction = 'iscmeb', assay = 'ProFAST')
+# tsne2_iscmeb <- seuInt2@reductions$tSNE
+# p_batch_iscmeb <- dimPlot(seuInt2, item='batch')
+# seuInt2$cluster_true <- factor(unlist(yList))
+# p_cluster_iscmeb <- dimPlot(seuInt2, item='cluster_true', cols = cols_cluster)
+# drawFigs(list(p_batch_iscmeb, p_cluster_iscmeb), layout.dim = c(1,2))
 # # Using the real DLPFC data -----------------------------------------------
 # # dat <- NULL
 # # get_r2_mcfadden <- function(embeds, y){
@@ -631,6 +687,7 @@
 # PRECASTObj <- ProFAST(PRECASTObj = PRECASTObj, fit.model="gaussian")
 # 
 # yList <- lapply(PRECASTObj@seulist, function(x) x$layer_guess_reordered)
+# colMeans(PRECASTObj@resList$ProFAST$hV[[1]])
 # ### Evaluate the MacR2
 # (MacVec_gauss <- evaluate_DR_PF2(PRECASTObj@resList$ProFAST$hV, yList))
 # (MacVec <- evaluate_DR_PF2(PRECASTObj@resList$ProFAST$hV, yList))
@@ -638,7 +695,7 @@
 # 
 # str(PRECASTObj@resList$ProFAST)
 # ## select the number of clusters
-# PRECASTObj <- RunHarmonyLouvain(PRECASTObj, resolution = 0.3)
+# PRECASTObj <- RunHarmonyLouvain(PRECASTObj, resolution = 0.3) ## six clusters
 # lapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$Louvain$cluster[[r]], yList[[r]]))
 # 
 # ## Run iSCMEB

@@ -31,12 +31,12 @@ download.file(githubURL,"seulist2_ID9_10.RDS",mode='wb')
 
 ```
 Then load to R 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 dlpfc2 <- readRDS("./seulist2_ID9_10.RDS")
 ```
 
 The package can be loaded with the command:
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 library(ProFAST)
 library(PRECAST)
 library(Seurat)
@@ -44,7 +44,7 @@ library(Seurat)
 
 ## View the DLPFC data
 First, we view the the  two  spatial transcriptomics data with ST platform. There are ~15000 genes for each data batch and ~7000 spots in total.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 dlpfc2 ## a list including three Seurat object with default assay: RNA
 ```
 Check the content in `dlpfc2`.
@@ -61,7 +61,7 @@ We show how to create a PRECASTObject object step by step. First, we create a Se
 
 * Note: the spatial coordinates must be contained in the meta data and named as `row` and `col`, which benefits the identification of spaital coordinates by ProFAST 
 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 ## Get the gene-by-spot read count matrices
 countList <- lapply(dlpfc2, function(x) x[["RNA"]]@counts)
 M <- length(countList)
@@ -98,7 +98,7 @@ row.names(seuList[[1]])[1:10]
 Next, we use `CreatePRECASTObject()` to create a PRECASTObject object based on the Seurat list object `seuList`.  Here, we select the top 2000 highly variable genes for followed analysis. Users are able to see https://feiyoung.github.io/PRECAST/articles/PRECAST.BreastCancer.html for what is done in this function. 
 
 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 ## Create PRECASTObject
 set.seed(2023)
 PRECASTObj <- CreatePRECASTObject(seuList, project = "ProFASTdlpfc2", gene.number = 2000, selectGenesMethod = "HVGs",
@@ -116,7 +116,7 @@ PRECASTObj@seulist
 ### Add the model setting
 
 Add adjacency matrix list and parameter setting of ProFAST. More model setting parameters can be found in `model_set_ProFAST()`.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 
 ## seuList is null since the default value `rawData.preserve` is FALSE.
 PRECASTObj@seuList
@@ -131,21 +131,22 @@ PRECASTObj@parameterList
 ```
 
 ### Fit ProFAST 
-For function `ProFAST`, users can specify the number of factors `q` and the fitted model `fit.model`. The `q` sets the number of spatial factors to be extracted, and a lareger one means more information to be extracted but higher computaional cost. The `fit.model` specifies the version of ProFAST to be fitted. The Gaussian version (`gaussian`) models the log-count matrices while the Poisson verion (`poisson`) models the count matrices; default as `poisson`. (Note: The computational time required to run the analysis on personal PCs is approximately 4.5 minutes.)
-```{r  eval = FALSE}
+For function `ProFAST`, users can specify the number of factors `q` and the fitted model `fit.model`. The `q` sets the number of spatial factors to be extracted, and a lareger one means more information to be extracted but higher computaional cost. The `fit.model` specifies the version of ProFAST to be fitted. The Gaussian version (`gaussian`) models the log-count matrices while the Poisson verion (`poisson`) models the count matrices; default as `poisson`. For a fast implementation, we run Gaussian version of ProFAST here. (Note: The computational time required to run the analysis on personal PCs is approximately ~1 minute.)
+```{r  eval = TRUE}
 ### set q= 15 here
 set.seed(2023)
-PRECASTObj <- ProFAST(PRECASTObj, q=15)
+PRECASTObj <- ProFAST(PRECASTObj, q=15, fit.model='gaussian')
+
 ### Check the results
 str(PRECASTObj@resList)
 ```
 
 <details>
-<summary>**Run gaussian version**</summary>
+<summary>**Run possion version**</summary>
 Users can also use the gaussian version by the following command:
 ```{r  eval =FALSE}
 set.seed(2023)
-PRECASTObj <- ProFAST(PRECASTObj, q=15, fit.model='gaussian')
+PRECASTObj <- ProFAST(PRECASTObj, q=15)
 ### Check the results
 str(PRECASTObj@resList)
 ```
@@ -154,7 +155,7 @@ str(PRECASTObj@resList)
 ### Evaluate the adjusted McFadden's pseudo R-square
 Next, we investigate the performance of dimension reduction by calculating the adjusted McFadden's pseudo R-square for each data batch. The manual annotations are regarded as the groud truth in the `meta.data` of each component of `PRECASTObj@seulist`.
 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 ## Obtain the true labels
 yList <- lapply(PRECASTObj@seulist, function(x) x$layer_guess_reordered)
 ### Evaluate the MacR2
@@ -168,13 +169,13 @@ print(MacVec)
 Based on the embeddings from ProFAST, we use `iSC-MEB` to jointly  align the embeddings and perform clustering. In this downstream analysis, other methods for embedding alignment and clustering can be also used. In the vignette of the simulated ST data, we  show another method (`Harmony`+`Louvain`) to perform embedding alignment and  clustering. 
 
 First, we use the function `RunHarmonyLouvain()` in `ProFAST` R package to select the number of clusters
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 PRECASTObj <- RunHarmonyLouvain(PRECASTObj, resolution = 0.3)
 ARI_vec_louvain <- sapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$Louvain$cluster[[r]], yList[[r]]))
 print(ARI_vec_louvain)
 ```
 Then, we use the function `RuniSCMEB()` `ProFAST` R package to jointly perform embedding alignment and spatial clustering. The results are saved in the slot `PRECASTObj@resList$iSCMEB`.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 PRECASTObj <- RuniSCMEB(PRECASTObj, seed=1)
 str(PRECASTObj@resList$iSCMEB)
 sapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$iSCMEB$cluster[[r]], yList[[r]]))
@@ -185,18 +186,18 @@ sapply(1:M, function(r) mclust::adjustedRandIndex(PRECASTObj@resList$iSCMEB$clus
 In the following, we remove the unwanted variations in the log-normalized expression matrices to obtain a combined log-normalized expression matrix in a Seurat object. For this real data, we use housekeeping genes as negative control to remove the unwanted variations.  Specifically, we leverage the batch effect embeddings estimated through housekeeping gene expression matrix to capture unwanted variations. Additionally, we utilize the cluster labels obtained via iSC-MEB to retain the desired biological effects.
 The posterior probability of cluster labels (RList) are in the slot `PRECASTObj@resList$iSCMEB`. 
 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 str(PRECASTObj@resList$iSCMEB)
 ```
 To capture the unwanted variation, we first select the select the housekeeping genes using the function `SelectHKgenes()`.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 ## select the HK genes
 HKgenes <- SelectHKgenes(seuList, species= "Human", HK.number=200)
 seulist_HK <- lapply(seuList, function(x) x[HKgenes, ])
 seulist_HK
 ```
 Then, we integrate the two sections by  removing the unwanted variations by using `seulist_HK=seulist_HK` and `Method = "iSC-MEB"` in the function `IntegrateSRTData()`. After obtaining `seuInt`, we will see there are three embeddings: `profast`, `iscmeb` and `position`, in the slot `seuInt@reductions`. `profast` are the embeddings obtained by ProFAST model fitting and are uncorrected embeddings that may includes the unwanted effects (i.e., batch effects); `iscmeb`are the aligned embeddings obtained by iSC-MEB fitting; and `position` are the spatial coordinates.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 seuInt <- IntegrateSRTData(PRECASTObj, seulist_HK=seulist_HK, Method = "iSC-MEB",
                            seuList_raw=NULL, covariates_use=NULL, verbose=TRUE)
 seuInt
@@ -204,11 +205,12 @@ seuInt
 
 ## Visualization
 First, user can choose a beautiful color schema using `chooseColors()` in the R package `PRECAST`.
-```{r  eval = FALSE}
-cols_cluster <- chooseColors(palettes_name = "Nature 10", n_colors = 9, plot_colors = TRUE)
+```{r  eval = TRUE}
+cols_cluster <- chooseColors(palettes_name = "Nature 10", n_colors = 8, plot_colors = TRUE)
 ```
+
 Then, we plot the spatial scatter plot for clusters using the function `SpaPlot()` in the R package `PRECAST`.
-```{r  eval = FALSE, fig.width=6.5, fig.height=3}
+```{r  eval = TRUE, fig.width=6.5, fig.height=3}
 p12 <- SpaPlot(seuInt, item = "cluster", batch = NULL, point_size = 1, cols = cols_cluster, combine = FALSE)
 library(ggplot2)
 p12 <- lapply(p12, function(x) x+ coord_flip() + scale_x_reverse())
@@ -216,18 +218,18 @@ drawFigs(p12, layout.dim = c(1,2), common.legend = T)
 ```
 
 We use the function `AddUMAP()` in the R package `PRECAST` to obtain the three-dimensional components of UMAP using the aligned embeddings in the reduction `harmony`. 
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 seuInt <- AddUMAP(seuInt, n_comp=3, reduction = 'iscmeb', assay = 'ProFAST')
 seuInt
 ```
 We plot the spatial tNSE RGB plot to illustrate the performance in extracting features.
-```{r  eval = FALSE, fig.width=8, fig.height=3}
+```{r  eval = TRUE, fig.width=6, fig.height=3.4}
 p13 <- SpaPlot(seuInt, batch = NULL, item = "RGB_UMAP", point_size = 1, combine = FALSE, text_size = 15)
-drawFigs(p13, layout.dim = c(1, 3), common.legend = TRUE, legend.position = "right", align = "hv")
-
+p13 <- lapply(p13, function(x) x+ coord_flip() + scale_x_reverse())
+drawFigs(p13, layout.dim = c(1, 2), common.legend = TRUE, legend.position = "right", align = "hv")
 ```
 We use the function `AddUTSNE()` in the R package `PRECAST` to obtain the two-dimensional components of UMAP using the aligned embeddings in the reduction `iscmeb`, and  plot the tSNE plot based on the extracted features  to check the performance of integration.
-```{r  eval = FALSE, fig.width=8, fig.height=3}
+```{r  eval = TRUE, fig.width=8, fig.height=3}
 seuInt <- AddTSNE(seuInt, n_comp = 2, reduction = 'iscmeb', assay = 'ProFAST')
 p1 <- dimPlot(seuInt, item = "cluster", point_size = 0.5, font_family = "serif", cols = cols_cluster,
     border_col = "gray10",  legend_pos = "right")  # Times New Roman
@@ -238,7 +240,7 @@ drawFigs(list(p1, p2), layout.dim = c(1, 2), legend.position = "right", align = 
 
 ## Combined differential epxression analysis
 Finally, we condut the combined differential expression analysis using the integrated log-normalized expression matrix saved in the `seuInt` object. The function `FindAllMarkers()` in the `Seurat` R package is ued to achieve this analysis.
-```{r  eval = FALSE}
+```{r  eval = TRUE}
 dat_deg <- FindAllMarkers(seuInt)
 library(dplyr)
 n <- 5
@@ -249,7 +251,7 @@ dat_deg %>%
 ```
 
 Plot dot plot of normalized expressions of the layer-specified marker genes for each spatial domain identified by using the ProFAST embeddings. 
-```{r  eval = FALSE, fig.width=8, fig.height=6}
+```{r  eval = TRUE, fig.width=8, fig.height=6}
 col_here <- c("#F2E6AB", "#9C0141") 
 library(ggplot2)
 marker_Seurat <- readRDS("151507_DEGmarkerTop_5.rds")
@@ -264,10 +266,10 @@ p_dot
 # table(unlist(yList), Idents(seuInt))
 ```
 Based on the marker genes, we annotate the Domains 1-9 as Layer5/6, Layer3/4, Layer5, Layer2/3, Layer2/3, Layer6, WM, Layer5, Layer1.  Then, we rename the Domains using the function `RenameIdents()`.
-```{r  eval = FALSE, fig.width=8, fig.height=6.5}
-seuInt2 <- RenameIdents(seuInt, '1' = 'Layer5/6', '2' = 'Layer3/4', '3'="Layer5", '4'="Layer2/3",
-                           '5'='Layer2/3', '6'= 'Layer6', '7' ='WM', '8'='Layer5', '9'='Layer1')
-levels(seuInt2)  <- c("Layer1", "Layer2/3", "Layer3/4", "Layer5", "Layer5/6", "Layer6", "WM")
+```{r  eval = TRUE, fig.width=8, fig.height=6.5}
+seuInt2 <- RenameIdents(seuInt, '1' = 'Layer6', '2' = 'Layer2/3', '3'="Layer5", '4'="WM",
+                           '5'='Layer3/4', '6'= 'Layer1')
+levels(seuInt2)  <- c("Layer1", "Layer2/3", "Layer3/4", "Layer5", "Layer6", "WM")
 p_dot2 <- DotPlot(seuInt2, features=unname(features), cols=col_here, #  idents = ident_here,
               col.min = -1, col.max = 1) + coord_flip()+ theme(axis.text.y = element_text(face = "italic"))+
   ylab("Domain") + xlab(NULL) + theme(axis.text.x = element_text(size=12, angle = 25, hjust = 1, family='serif'),

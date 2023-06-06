@@ -337,6 +337,7 @@ RuniSCMEB <- function(PRECASTObj, ...){
     message( "******","Perform embedding alignment and spatial clustering using iSC-MEB based on  the embeddings obtained by ProFAST...")
   tstart <- Sys.time()
   
+  
   tic <- proc.time()
   reslist_iscmeb <- iscmeb_run(
     PRECASTObj@resList$ProFAST$hV,

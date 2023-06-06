@@ -26,7 +26,7 @@ This vignette introduces the ProFAST workflow for the analysis of  multiple simu
 
 We demonstrate the use of ProFAST to three simulated ST data that are [here](https://github.com/feiyoung/ProFAST/tree/main/vignettes_data), which can be downloaded to the current working path by the following command:
 ```{r eval=FALSE}
-githubURL <- "https://github.com/feiyoung/ProFAST/blob/main/vignettes_data/simu3.rda?raw=true"
+githubURL <- "https://github.com/feiyoung/ProFAST/blob/main/vignettes_data/simu3.rds?raw=true"
 download.file(githubURL,"simu3.rds",mode='wb')
 
 ```
@@ -191,6 +191,7 @@ First, user can choose a beautiful color schema using `chooseColors()` in the R 
 ```{r  eval = FALSE}
 cols_cluster <- chooseColors(palettes_name = "Nature 10", n_colors = 7, plot_colors = TRUE)
 ```
+
 Then, we plot the spatial scatter plot for clusters using the function `SpaPlot()` in the R package `PRECAST`.
 ```{r  eval = FALSE, fig.width=8, fig.height=6.3}
 p12 <- SpaPlot(seuInt, item = "cluster", batch = NULL, point_size = 1, cols = cols_cluster, combine = TRUE)
