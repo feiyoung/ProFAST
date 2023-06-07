@@ -1,6 +1,6 @@
 Package: ProFAST
 Type: Package
-Title: What the package does (short line)
+Title: Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction
 Version: 1.1
 Date: 2023-05-30
 Authors@R: 
@@ -20,8 +20,28 @@ Description: Probabilistic factor analysis for spatially-aware dimension reducti
     More details can be referred to Wei Liu, et al. (2023) <doi:10.1038/s41467-023-35947-w>.
 License: GPL-3
 Depends: 
-    R (>= 4.0.0)
-Imports: Rcpp (>= 1.0.10)
+    R (>= 4.0.0),
+    gtools
+Imports: 
+    Rcpp (>= 1.0.10),
+    AnnotationDbi,
+    DR.SC,
+    Matrix,
+    mclust,
+    PRECAST,
+    pbapply,
+    biomaRt,
+    irlba,
+    org.Hs.eg.db,
+    org.Mm.eg.db,
+    Seurat,
+    parallel,
+    performance,
+    harmony,
+    nnet,
+    methods,
+    stats,
+    utils
 LazyData: true
 URL: https://github.com/feiyoung/ProFAST
 BugReports: https://github.com/feiyoung/ProFAST/issues

@@ -54,8 +54,8 @@ BiocManager::install(c("scater"))
 ## Usage
 For usage examples and guided walkthroughs, check the `vignettes` directory of the repo. 
 
-* [Integration analysis for a toy example with three batches](https://feiyoung.github.io/ProFAST/articles/ProFAST.Simu.html)
-* [Integration  analysis for DLPFC data with two batches](https://feiyoung.github.io/ProFAST/articles/ProFAST.BreastCancer.html)
+* [Integration analysis for a toy example with three batches](https://feiyoung.github.io/ProFAST/articles/ProFASTsimu.html)
+* [Integration  analysis for DLPFC data with two batches](https://feiyoung.github.io/ProFAST/articles/ProFASTdlpfc2.html)
 
 
 

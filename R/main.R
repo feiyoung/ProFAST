@@ -1,6 +1,7 @@
 
 # generate man files
 # devtools::document()
+# R CMD check --as-cran ProFAST_1.1.tar.gz
 ## usethis::use_data(dat_r2_mac)
 # pkgdown::build_site()
 # pkgdown::build_home()
@@ -59,9 +60,11 @@ Diag<- function(vec){
   }
   return(y)
 }
+
+#' @importFrom irlba irlba
 approxPCA <- function(X, q){ ## speed the computation for initial values.
   
-  require(irlba) 
+  #rrequire(irlba) 
   n <- nrow(X)
   svdX  <- irlba(A =X, nv = q)
   PCs <- svdX$u %*% Diag(svdX$d[1:q])
@@ -257,24 +260,11 @@ ProFAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "pois
 get_r2_mcfadden <- function(embeds, y){
   # library(nnet)
   # library(performance)
-  # dat_r2_mac <- NULL
-  data(dat_r2_mac)
+  dat_r2_mac <- NULL
+  
+  # data('dat_r2_mac', package = "ProFAST")
   y <- as.numeric(as.factor(y))
-  hq <- ncol(embeds)
-  dat_r2_mac <- as.data.frame(cbind(y=y, x=embeds))
-  dat_r2_mac$y <- factor(dat_r2_mac$y)
-  name <-  c('y', paste0('V', 1:hq))
-  names(dat_r2_mac) <-name
-  formu <- paste0("y~")
-  for(i in 1:hq){
-    if(i < hq){
-      formu <- paste(formu, name[i+1], seq='+')
-    }else{
-      formu <- paste(formu, name[i+1], seq='')
-    }
-    
-  }
-  model1 <- nnet::multinom(as.formula(formu), data = dat_r2_mac)
+  model1 <- nnet::multinom(y~embeds)
   R2 <- r2_mcfadden(model1)
   return(R2$R2_adjusted)
 }
@@ -370,8 +360,8 @@ AddParSettingProFAST <- function(PRECASTObj, ...){
 #'
 
 ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
-  # suppressMessages(require(Matrix))
-  # suppressMessages(require(Seurat))
+  # suppressMessages(rrequire(Matrix))
+  # suppressMessages(rrequire(Seurat))
   
   if(!inherits(PRECASTObj, "PRECASTObj")) 
     stop("ProFAST: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
@@ -431,6 +421,10 @@ ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
 #' @param Method a string, the method to use, one of 'biomaRt' and 'eg.db', default as 'eg.db'.
 #' @return Return a string vector of transferred gene names. The gene names not matched in the database will not change.
 #' @export
+#' @importFrom org.Hs.eg.db org.Hs.eg.db
+#' @importFrom org.Mm.eg.db org.Mm.eg.db
+#' @importFrom AnnotationDbi mapIds
+#' @importFrom biomaRt useDataset getBM useMart
 #' @examples
 #' geneNames <- c("ENSG00000171885", "ENSG00000115756")
 #' transferGeneNames(geneNames, now_name = "ensembl", to_name="symbol",species="Human", Method='eg.db')
@@ -451,11 +445,11 @@ transferGeneNames <- function(genelist, now_name = "ensembl", to_name="symbol",
   transferredNames <- switch (toupper(species),
                               HUMAN = {
                                 if(tolower(Method)=='eg.db'){
-                                  require(org.Hs.eg.db)
+                                  #require(org.Hs.eg.db)
                                   mapIds(org.Hs.eg.db, keys = genelist,
                                          keytype = toupper(now_name), column=toupper(to_name))
                                 }else if(tolower(Method)=='biomart'){
-                                  require(biomaRt)
+                                  #require(biomaRt)
                                   mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
                                   G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
                                                   values=genelist,mart= mart)
@@ -478,11 +472,11 @@ transferGeneNames <- function(genelist, now_name = "ensembl", to_name="symbol",
                               },
                               MOUSE= {
                                 if(tolower(Method)=='eg.db'){
-                                  require(org.Mm.eg.db)
+                                  #rrequire(org.Mm.eg.db)
                                   mapIds(org.Mm.eg.db, keys = genelist,
                                          keytype = toupper(now_name), column=toupper(to_name))
                                 }else if(tolower(Method)=='biomart'){
-                                  require(biomaRt)
+                                  #rrequire(biomaRt)
                                   mart <- useDataset(" mmusculus_gene_ensembl", useMart("ensembl"))
                                   G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
                                                   values=genelist,mart= mart)
@@ -595,23 +589,26 @@ selectHKFeatures <- function(seulist, HKFeatureList, HKFeatures=200){
 #' @param HK.number an optional integer, specify the number of housekeeping genes to be selected.
 #' @return Return a string vector of the selected gene names. 
 #' @export
+#' @importFrom  DR.SC FindSVGs
+#' @importFrom utils data
+#' @importFrom pbapply pblapply
 #'
 SelectHKgenes <- function(seuList, species= c("Human", "Mouse"), HK.number=200){
   
-  require(PRECAST)
+  #rrequire(PRECAST)
   
   
   gene_symbols <- Reduce(intersect, lapply(seuList, row.names))
   # gene_symbols <- transferGeneNames(gene_intersect, species="Human")
   
   if(tolower(species) =="human"){
-    data("Human_HK_genes")
-    idx_hk <- which(gene_symbols %in% as.character(Human_HK_genes$Gene))
+    #data("Human_HK_genes", package = "PRECAST")
+    idx_hk <- which(gene_symbols %in% as.character(PRECAST::Human_HK_genes$Gene))
     housekeep_genes <- gene_symbols[idx_hk]
     
   }else if(tolower(species) == "mouse"){
-    data("Mouse_HK_genes")
-    idx_hk <- which(gene_symbols %in% as.character(Mouse_HK_genes$Gene))
+    # data("Mouse_HK_genes", package = "PRECAST")
+    idx_hk <- which(gene_symbols %in% as.character(PRECAST::Mouse_HK_genes$Gene))
     housekeep_genes <- gene_symbols[idx_hk]
   }
   
@@ -639,6 +636,7 @@ SelectHKgenes <- function(seuList, species= c("Human", "Mouse"), HK.number=200){
 
 
 # Integration analysis ----------------------------------------------------
+#' @importFrom stats as.formula  coef cov lm median model.matrix model.matrix.lm residuals var 
 correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL, maxIter=30, epsELBO=1e-4, verbose=TRUE){
   
   dfList2df <- function(dfList){
@@ -844,15 +842,16 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @export
 #' @details If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requies a big memory to be run, while the latter note.
 #' @importFrom Matrix t sparseMatrix
-#' @importFrom Seurat DefaultAssay CreateSeuratObject
+#' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-`
 #' @importFrom PRECAST Add_embed
+#' @import gtools
 #' @useDynLib ProFAST, .registration = TRUE
 #'
 IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "HarmonyLouvain"), seuList_raw=NULL, covariates_use=NULL, 
                              Tm=NULL, verbose=TRUE){
-  require(Matrix)
-  library(Seurat)
-  require(PRECAST)
+  # require(Matrix)
+  # library(Seurat)
+  # require(PRECAST)
 
   Method <- match.arg(Method)
   verbose <- verbose

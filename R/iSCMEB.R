@@ -1,13 +1,13 @@
 #' @importFrom mclust Mclust mclustBIC 
 mycluster <- function(Z, G, int.model='EEE', verbose=FALSE){
-  require(mclust)
+  ## require(mclust)
   mclus2 <- mclust::Mclust(Z, G=G,modelNames =int.model ,verbose=verbose)
   return(mclus2)
 }
 
 parafun_int <- function(k, Z, Sigma_equal, Sigma_diag, seed=1, init.start=5, int.model='EEE', verbose=FALSE){
   
-  require(mclust)
+  
   loglik0 = -1e20
   for (i in 1:init.start) {
     set.seed(seed+(i-1)*10)
@@ -41,7 +41,7 @@ parafun_int <- function(k, Z, Sigma_equal, Sigma_diag, seed=1, init.start=5, int
 get_initial_value4seqK <- function(
   Kseq, hZ, Sigma_equal, Sigma_diag, seed=1, init.start=5, int.model='EEE', verbose=FALSE, coreNum){
   nK = length(Kseq)
-  require(mclust)
+  ## require(mclust)
   if (nK>1 & coreNum>1) {
     ## at most use 80% CPU
     cores <- min(c(nK, 10, parallel::detectCores()*0.8, coreNum))
@@ -72,7 +72,7 @@ get_initial_value4seqK <- function(
   return(list(y0k = y0k, Mu0k=Mu0k, Sigma0k=Sigma0k, Pi0k=Pi0k))
 }
 
-
+#' @importFrom methods setClass new as
 setClass("iSCMEBResObj", slots=list(
   posList = "ANY", 
   paramList= "list", 
@@ -256,7 +256,7 @@ get_sampleID <- function(XList){
 drLouvain <- function(hZ, resolution=0.8){
   ### Louvain cluster based on estimated integrative low-dimensional embeddings. 
   
-  require(Seurat)
+  ## require(Seurat)
   n <- nrow(hZ); q <- ncol(hZ)
   row.names(hZ) <- paste0("spot", 1:n)
   colnames(hZ) <- paste0("gene", 1:q)
@@ -279,7 +279,7 @@ drLouvain <- function(hZ, resolution=0.8){
 #'
 
 RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
-  require(Seurat)
+  # require(Seurat)
   #require(harmony)
   
   if(is.null(PRECASTObj@resList$ProFAST)) stop("RunLouvain: please run ProFAST before using SelectclustNumber!")
