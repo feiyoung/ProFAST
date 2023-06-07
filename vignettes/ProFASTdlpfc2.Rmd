@@ -331,3 +331,10 @@ het2 <- netVisual_heatmap(cellchat, signaling = NULL,measure = "weight", font.si
                           font.size.title = 14)
 het2
 ```
+
+<details>
+<summary>**Session Info**</summary>
+```{r}
+sessionInfo()
+```
+</details>
