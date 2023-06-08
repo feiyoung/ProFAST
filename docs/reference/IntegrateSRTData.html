@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ProFAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2</span>
       </span>
     </div>
 
@@ -32,10 +32,10 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/ProFASTdlpfc2.html">UNKNOWN TITLE</a>
+      <a href="../articles/ProFASTdlpfc2.html">ProFAST: two DLPFC sections</a>
     </li>
     <li>
-      <a href="../articles/ProFASTsimu.html">UNKNOWN TITLE</a>
+      <a href="../articles/ProFASTsimu.html">ProFAST: simulation</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -70,6 +70,7 @@
   seuList_raw <span class="op">=</span> <span class="cn">NULL</span>,
   covariates_use <span class="op">=</span> <span class="cn">NULL</span>,
   Tm <span class="op">=</span> <span class="cn">NULL</span>,
+  subsample_rate <span class="op">=</span> <span class="fl">1</span>,
   verbose <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
     </div>
@@ -100,6 +101,10 @@
 <dd><p>an optional numeric vector with the length equal to <code>PRECASTObj@seulist</code>, the time point information if the data include the temporal information. Default as <code>NULL</code> that means there is no temporal information.</p></dd>
 
 
+<dt>subsample_rate</dt>
+<dd><p>a real ranging in (0,1], specify the rate of spot drawing for speeding up the computation when the number of spots is very large. Default is 1, meaing using all spots.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>an optional logical value, default as <code>TRUE</code>.</p></dd>
 
@@ -112,7 +117,7 @@
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>If <code>seuList_raw</code> is not equal <code>NULL</code> or <code>PRECASTObj@seuList</code> is not <code>NULL</code>, this function will remove the unwanted variations for all genes in <code>seuList_raw</code> object. Otherwise, only the the unwanted variation of genes in <code>PRECASTObj@seulist</code> will be removed. The former requies a big memory to be run, while the latter note.</p>
+    <p>If <code>seuList_raw</code> is not equal <code>NULL</code> or <code>PRECASTObj@seuList</code> is not <code>NULL</code>, this function will remove the unwanted variations for all genes in <code>seuList_raw</code> object. Otherwise, only the the unwanted variation of genes in <code>PRECASTObj@seulist</code> will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment <code>subsample_rate</code>. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations.</p>
     </div>
 
   </div>

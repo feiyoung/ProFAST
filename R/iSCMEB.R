@@ -282,7 +282,9 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   # require(Seurat)
   #require(harmony)
   
-  if(is.null(PRECASTObj@resList$ProFAST)) stop("RunLouvain: please run ProFAST before using SelectclustNumber!")
+  if(is.null(PRECASTObj@resList$ProFAST))
+    stop("RunHarmonyLouvain: Check the argument: PRECASTObj!  The component ProFAST in PRECASTObj@resList is NULL! Please run ProFAST() first!")
+  
   
   seed <- PRECASTObj@parameterList$seed
   verbose <- PRECASTObj@parameterList$verbose
@@ -331,6 +333,14 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
 #' @export
 #'
 RuniSCMEB <- function(PRECASTObj, ...){
+  
+  
+  ### Arguments checking
+  if(!inherits(PRECASTObj, "PRECASTObj")) 
+    stop("RuniSCMEB: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
+  if(is.null(PRECASTObj@resList)) stop("RuniSCMEB: Check the argument: PRECASTObj! The slot PRECASTObj@resList is NULL! Please run ProFAST() first!")
+  if(is.null(PRECASTObj@resList$ProFAST)) 
+    stop("RuniSCMEB: Check the argument: PRECASTObj!  The component ProFAST in PRECASTObj@resList is NULL! Please run ProFAST() first!")
   
   verbose <- PRECASTObj@parameterList$verbose
   if(verbose)

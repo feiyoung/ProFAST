@@ -11,6 +11,7 @@ IntegrateSRTData(
   seuList_raw = NULL,
   covariates_use = NULL,
   Tm = NULL,
+  subsample_rate = 1,
   verbose = TRUE
 )
 }
@@ -27,6 +28,8 @@ IntegrateSRTData(
 
 \item{Tm}{an optional numeric vector with the length equal to \code{PRECASTObj@seulist}, the time point information if the data include the temporal information. Default as \code{NULL} that means there is no temporal information.}
 
+\item{subsample_rate}{a real ranging in (0,1], specify the rate of spot drawing for speeding up the computation when the number of spots is very large. Default is 1, meaing using all spots.}
+
 \item{verbose}{an optional logical value, default as \code{TRUE}.}
 }
 \value{
@@ -36,5 +39,5 @@ Return a Seurat object by integrating all SRT data batches into a SRT data, wher
 Integrate multiple SRT data based on the \code{PRECASTObj} object by ProFAST and other model fitting.
 }
 \details{
-If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requies a big memory to be run, while the latter note.
+If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment \code{subsample_rate}. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations.
 }

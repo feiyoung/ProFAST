@@ -26,6 +26,9 @@ model_set_ProFAST(
 
 \item{seed}{a postive integer, the random seed to be set in initialization.}
 }
+\value{
+return a list including the parameters set in the arguments.
+}
 \description{
 Prepare parameters setup for ProFAST model fitting.
 }

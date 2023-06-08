@@ -1,10 +1,11 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.1.tar.gz
+# R CMD check --as-cran ProFAST_1.2.tar.gz
 ## usethis::use_data(dat_r2_mac)
 # pkgdown::build_site()
 # pkgdown::build_home()
+# pkgdown::build_reference()
 # pkgdown::build_article("ProFASTsimu")
 # pkgdown::build_article("ProFASTdlpfc2")
 # Basic functions ---------------------------------------------------------
@@ -280,6 +281,7 @@ get_r2_mcfadden <- function(embeds, y){
 #' @param verbose a logical value, whether output the information in iteration.
 #' @param seed a postive integer, the random seed to be set in initialization.
 #' @export
+#' @return return a list including the parameters set in the arguments.
 #' @examples
 #' model_set_ProFAST(maxIter = 30, epsLogLik = 1e-5,
 #'   error_heter=TRUE, Psi_diag=FALSE, verbose=TRUE, seed=2023)
@@ -363,12 +365,21 @@ ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   # suppressMessages(rrequire(Matrix))
   # suppressMessages(rrequire(Seurat))
   
+  ## Arguments checking
   if(!inherits(PRECASTObj, "PRECASTObj")) 
     stop("ProFAST: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
+  if(q < 1) stop("ProFAST: Check the argument: q!  q must be a positive integer.")
+  if(is.null(PRECASTObj@seulist)) stop("ProFAST: Check the argument: PRECASTObj! The slot seulist in PRECASTObj is NULL!")
+  if(!(fit.model %in% c("poisson", "gaussian")))
+    stop("ProFAST: Check the argument: fit.model! fit.model must either be 'poisson' or 'gaussian'.")
+  if(is.null(PRECASTObj@AdjList))
+    stop("ProFAST: Check the argument: PRECASTObj! The slot AdjList in PRECASTObj is NULL! Please run AddAdjList() first!")
+  para_names <- c("maxIter", "epsLogLik", "verbose", "error_heter", "Psi_diag", "seed")
+  if(length(setdiff(para_names, names(PRECASTObj@parameterList))) > 0)
+     stop("ProFAST: Check the argument: PRECASTObj! The slot parameterList lacks some key arguments! Please run AddParSettingProFAST() first!")
+  ## Finish checking
   
-  if(q < 0) stop("ProFAST: Check the argument: q!  PRECASTObj must be a positive integer.")
   
-  if(is.null(PRECASTObj@seulist)) stop("The slot seulist in PRECASTObj is NULL!")
   
   fit.model <- match.arg(fit.model)
   
@@ -596,7 +607,11 @@ selectHKFeatures <- function(seulist, HKFeatureList, HKFeatures=200){
 SelectHKgenes <- function(seuList, species= c("Human", "Mouse"), HK.number=200){
   
   #rrequire(PRECAST)
+  ### Arguments checking
+  if(!is.list(seuList)) 
+    stop("SelectHKgenes: Check the argument: seuList!  seuList must be a list consisting of Seurat objects!")
   
+  ### Finish arguments checking
   
   gene_symbols <- Reduce(intersect, lapply(seuList, row.names))
   # gene_symbols <- transferGeneNames(gene_intersect, species="Human")
@@ -714,7 +729,9 @@ correct_genesR <- function(XList, RList, HList, Tm, AdjList, covariateList=NULL,
   return(correct_list)
   
 }
-correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample_rate, 
+
+#' @importFrom stats as.formula  coef cov lm median model.matrix model.matrix.lm residuals var 
+correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample_rate=NULL, 
                                      covariateList=NULL, maxIter=30, epsELBO=1e-4, verbose=TRUE){
   
   dfList2df <- function(dfList){
@@ -731,10 +748,11 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
   }
   
   M <- length(XList);  p <- ncol(XList[[1]])
-  K <- ncol(RList[[1]]); q <- ncol(HList[[1]]); d <- ncol(Tm)
-  Xmat <- matlist2mat(XList)
+   q <- ncol(HList[[1]]);
+  d <- ncol(Tm) ## the number of section-specified covariates.
+  ## Xmat <- matlist2mat(XList)
   R <- matlist2mat(RList)
-  colnames(R) <- NULL
+  nvec <- sapply(RList, nrow)
   
   if(!is.null(covariateList)){
     # covariates <- matlist2mat(covariateList)
@@ -743,18 +761,18 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
     covariates <-  model.matrix.lm(object = ~.+1, data = covarites_df, na.action = "na.pass")
     rm(covariateList, covarites_df)
     R <- cbind(R, covariates[,-1])
-    rm(covariates)
+    RList <- mat2list(R, nvec = nvec)
+    rm(covariates, R)
   }
   
-  # subsample_rate <- 0.1
+  # subsampling to speed up the computation!
+  if(is.null(subsample_rate)) subsample_rate <- 1
   index_List <- get_indexList(RList)
-  set.seed(1)
-  index_subsample <- sort(sample(sum(nvec), sum(nvec)*subsample_rate))
+  index_subsample <- sort(sample(sum(nvec), floor(sum(nvec)*subsample_rate)))
   ## calculate the number of indices belonging to the index of each slide
   nvec_subsample <- rep(NA, length(nvec))
   for(i in 1:length(nvec_subsample)){
-    message("i = ", i)
-    
+    ## message("i = ", i)
     nvec_subsample[i] <- sum(index_subsample%in% index_List[[i]])
   }
   index_List_new <- lapply(RList, function(x) 1: nrow(x))
@@ -764,23 +782,32 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
   XList_sub <- list(); RList_sub <- list(); HList_sub <- list()
   AdjList_sub <- list()
   for(i in 1:length(XList)){
-    message("i = ", i)
+    # message("i = ", i)
     index_tmp <- index_subsampleList[[i]]
     XList_sub[[i]] <- XList[[i]][index_tmp,]
     RList_sub[[i]] <- RList[[i]][index_tmp, ]
     HList_sub[[i]] <- HList[[i]][index_tmp, ]
     AdjList_sub[[i]] <- AdjList[[i]][index_tmp, index_tmp]
   }
+  rm(RList,  AdjList)
   
-  H <- matlist2mat(HList)
+  
+  H <- matlist2mat(HList_sub)
   colnames(H) <- NULL
-  nvec <- sapply(RList, nrow)
+  
   TmList <- list()
   for(m in 1:M){
-    TmList[[m]] <- matrix(Tm[m,], nrow=nvec[m], ncol=ncol(Tm), byrow=T)
+    TmList[[m]] <- matrix(Tm[m,], nrow=nvec_subsample[m], ncol=ncol(Tm), byrow=T)
   }
   TM <- matlist2mat(TmList)
+  colnames(TM) <- NULL
   
+  R <- matlist2mat(RList_sub)
+  colnames(R) <- NULL
+  K <- ncol(R);
+  
+  ### Calculate the initial values for the algorithm of  spatial linear regression fitting
+  Xmat <- matlist2mat(XList_sub)
   lm1 <- lm(Xmat~ R+H+TM+0)
   coef_all <- coef(lm1)
   rm(R, H, Xmat, lm1)
@@ -798,30 +825,18 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
       zetaj_int <- matrix(1, 1, p)
     }
   }
-  
-  
   sigmaj_int <- matrix(1, M, p)
   psij_int <- matrix(1,M, p)
   
   
   # maxIter <- 30; epsELBO <- 1e-4; verbose<- TRUE
-  reslist <- correct_genes(XList, RList, HList, Tm, Adjlist=AdjList, sigmaj_int, psij_int, 
+  reslist <- correct_genes(XList_sub, RList_sub, HList_sub, Tm, Adjlist=AdjList_sub, sigmaj_int, psij_int, 
                            alphaj_int, gammaj_int, zetaj_int, maxIter, epsELBO, verbose) 
   
-  # str(reslist)
   correct_list <- list(XList_correct=lapply(1:M, function(j) XList[[j]] - HList[[j]] %*% reslist$gamma),
                        gammaj=reslist$gamma, alphaj=reslist$alpha, zetaj=reslist$zeta)
   
   
-  # for(m in 1:M){
-  #   if(!any(sapply(XList, function(x) is.null(row.names(x))))){
-  #     
-  #     row.names( correct_list$XList_correct[[m]]) <- paste0("slice", m, "_", row.names(XList[[m]]) )
-  #   }
-  #   if(!any(sapply(XList, function(x) is.null(colnames(x))))){
-  #        colnames(correct_list$XList_correct[[m]]) <- colnames(XList[[m]])
-  #   }
-  # }
   
   return(correct_list)
   
@@ -837,22 +852,44 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @param seuList_raw an optional list with Seurat object, the raw data.
 #' @param covariates_use a string vector, the colnames in \code{PRECASTObj@seulist[[1]]@meta.data}, representing other biological covariates to considered when removing batch effects. This is achieved by adding additional covariates for biological conditions in the regression, such as case or control. Default as 'NULL', denoting no other covariates to be considered.
 #' @param Tm an optional numeric vector with the length equal to \code{PRECASTObj@seulist}, the time point information if the data include the temporal information. Default as \code{NULL} that means there is no temporal information.
+#' @param subsample_rate a real ranging in (0,1], specify the rate of spot drawing for speeding up the computation when the number of spots is very large. Default is 1, meaing using all spots.
 #' @param verbose an optional logical value, default as \code{TRUE}.
 #' @return Return a Seurat object by integrating all SRT data batches into a SRT data, where the column "batch" in the meta.data represents the batch ID, and the column "cluster" represents the clusters. The embeddings are put in \code{seu@reductions} slot and \code{Idents(seu)} is set to cluster label. Note that only the normalized expression is valid in the data slot while count is invalid.
 #' @export
-#' @details If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requies a big memory to be run, while the latter note.
+#' @details If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment \code{subsample_rate}. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations. 
 #' @importFrom Matrix t sparseMatrix
 #' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-`
 #' @importFrom PRECAST Add_embed
 #' @import gtools
 #' @useDynLib ProFAST, .registration = TRUE
 #'
-IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "HarmonyLouvain"), seuList_raw=NULL, covariates_use=NULL, 
-                             Tm=NULL, verbose=TRUE){
+IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "HarmonyLouvain"), seuList_raw=NULL, 
+                             covariates_use=NULL, Tm=NULL, subsample_rate= 1, verbose=TRUE){
   # require(Matrix)
   # library(Seurat)
   # require(PRECAST)
 
+  ### Arguments checking
+  if(!inherits(PRECASTObj, "PRECASTObj")) 
+    stop("IntegrateSRTData: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
+  if(is.null(PRECASTObj@seulist)) stop("IntegrateSRTData: The slot seulist in PRECASTObj is NULL!")
+  if(!is.null(seulist_HK) && !is.list(seulist_HK))
+    stop("IntegrateSRTData: Check the argument: seulist_HK!  seulist_HK must either be NULL or a list consisting of Seurat objects.")
+  if(!(Method %in% c("iSC-MEB", "HarmonyLouvain")))
+    stop("IntegrateSRTData: Check the argument: Method! Method must either be 'iSC-MEB' or 'HarmonyLouvain'.")
+  if(!is.null(seuList_raw) && !is.list(seuList_raw))
+    stop("IntegrateSRTData: Check the argument: seuList_raw!  seuList_raw must either be NULL or a list consisting of Seurat objects.")
+  if(!is.null(covariates_use) &&  !is.character(covariates_use))
+    stop("IntegrateSRTData: Check the argument: covariates_use! covariates_use must either be NULL or a character scalar/vector.")
+  if(!is.null(Tm) && !is.numeric(Tm))
+    stop("IntegrateSRTData: Check the argument: Tm! Tm must either be NULL or a numeric vector.")
+  if(subsample_rate>1 || subsample_rate<=0){
+    stop("IntegrateSRTData: Check the argument: subsample_rate!  subsample_rate must range in (0,1]!")
+  }
+  if(!is.logical(verbose))
+    stop("IntegrateSRTData:  Check the argument: subsample_rate!  verbose must be a logical value!")
+  
+  
   Method <- match.arg(Method)
   verbose <- verbose
   if(verbose)
@@ -893,6 +930,14 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     
     
   }
+  
+  
+  if(sum(nvec)> 8e4){
+    
+    subsample_rate <- 5e4/sum(nvec)
+    message("The total number of spots exceeds 8e4, thus the subsampling schema will be used to speed up computation.")
+  }
+  if(subsample_rate <1 && subsample_rate>0) message("IntegrateSRTData: the subsampling schema will be used to speed up computation since subsample_rate is smaller than 1.")
   
   if(!is.null(covariates_use)){
     covariateList <- lapply(PRECASTObj@seulist, function(x) x@meta.data[covariates_use])
@@ -956,11 +1001,14 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     stop("IntegrateSRTData: it does not support this Method!")
   }
   
-  tic <- proc.time()
-  correct_List_pois <- correct_genesR(XList, RList, HList, Tm, PRECASTObj@AdjList,
-                                      covariateList=covariateList, verbose=verbose)
-  toc <- proc.time()
-  time_all_pois <- toc[3] - tic[3]
+  if(subsample_rate==1){
+    correct_List_pois <- correct_genesR(XList, RList, HList, Tm, PRECASTObj@AdjList,
+                                        covariateList=covariateList, verbose=verbose)
+  }else{
+    correct_List_pois <- correct_genes_subsampleR(XList, RList, HList, Tm, PRECASTObj@AdjList,
+                                        covariateList=covariateList, subsample_rate = subsample_rate, verbose=verbose)
+  }
+  
   .logDiffTime(sprintf(paste0("%s Finish unwanted variation removal"), "*****"), t1 = tstart, verbose = verbose)
   
   
