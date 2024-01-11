@@ -1,13 +1,13 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.2.tar.gz
+# R CMD check --as-cran FAST_1.2.tar.gz
 ## usethis::use_data(dat_r2_mac)
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
-# pkgdown::build_article("ProFASTsimu")
-# pkgdown::build_article("ProFASTdlpfc2")
+# pkgdown::build_article("FASTsimu")
+# pkgdown::build_article("FASTdlpfc2")
 # Basic functions ---------------------------------------------------------
 .logDiffTime <- function(main = "", t1 = NULL, verbose = TRUE, addHeader = FALSE,
                          t2 = Sys.time(), units = "mins", header = "*****",
@@ -122,30 +122,30 @@ get_indexList <- function(alist){
   return(indexList)
 }
 ## Define functions
-#' (Varitional) ICM-EM algorithm for implementing ProFAST model
-#' @description (Varitional) ICM-EM algorithm for implementing ProFAST model
-#' @param XList an M-length list consisting of multiple matrices with class \code{dgCMatrix} or \code{matrix} that specifies the count/log-count gene expression matrix for each data batch used for ProFAST model.
-#' @param AdjList an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in ProFAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
-#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in ProFAST. Larger q means more information extracted.
-#' @param fit.model an optional string, specify the version of ProFAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as \code{gaussian} due to fastter computation.
-#' @param AList an optional list with each component being a vector whose length is equal to the rows of component in \code{XList}, specify the normalization factor in ProFAST. The default is \code{NULL} that means the normalization factor equal to 1. 
+#' (Varitional) ICM-EM algorithm for implementing FAST model
+#' @description (Varitional) ICM-EM algorithm for implementing FAST model
+#' @param XList an M-length list consisting of multiple matrices with class \code{dgCMatrix} or \code{matrix} that specifies the count/log-count gene expression matrix for each data batch used for FAST model.
+#' @param AdjList an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in FAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
+#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in FAST. Larger q means more information extracted.
+#' @param fit.model an optional string, specify the version of FAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as \code{gaussian} due to fastter computation.
+#' @param AList an optional list with each component being a vector whose length is equal to the rows of component in \code{XList}, specify the normalization factor in FAST. The default is \code{NULL} that means the normalization factor equal to 1. 
 #' @param maxIter the maximum iteration of ICM-EM algorithm. The default is 30.
 #' @param epsLogLik an optional positive vlaue, tolerance of relative variation rate of the observed pseudo loglikelihood value, defualt as '1e-5'.
-#' @param error_heter a logical value, whether use the heterogenous error for ProFAST model, default as \code{TRUE}. If \code{error.heter=FALSE}, then the homogenuous error is used.
+#' @param error_heter a logical value, whether use the heterogenous error for FAST model, default as \code{TRUE}. If \code{error.heter=FALSE}, then the homogenuous error is used.
 #' @param Psi_diag a logical value, whether set the conditional covariance matrix of the intrisic CAR to diagonal, default as \code{FALSE}.
 #' @param verbose a logical value, whether output the information in iteration.
 #' @param seed a postive integer, the random seed to be set in initialization.
 #' @param Vint_zero an optional logical value, specify whether the intial value of intrisic CAR component is set to zero; default as \code{FALSE}.
-#' @return return a list including the following components: (1) hV: an M-length list consisting of spatial embeddings in ProFAST; (2) nu: the estimated intercept vector; (3) Psi: the estimated covariance matrix; (4) W: the estimated shared loading matrix; (5) Lam: the estimated covariance matrix of error term; (6): ELBO: the ELBO value when algorithm convergence; (7) ELBO_seq: the ELBO values for all itrations.
+#' @return return a list including the following components: (1) hV: an M-length list consisting of spatial embeddings in FAST; (2) nu: the estimated intercept vector; (3) Psi: the estimated covariance matrix; (4) W: the estimated shared loading matrix; (5) Lam: the estimated covariance matrix of error term; (6): ELBO: the ELBO value when algorithm convergence; (7) ELBO_seq: the ELBO values for all itrations.
 #' @details None
-#' @seealso \code{\link{ProFAST_structure}}, \code{\link{ProFAST}}, \code{\link{model_set_ProFAST}}
+#' @seealso \code{\link{FAST_structure}}, \code{\link{FAST}}, \code{\link{model_set_FAST}}
 #' @references None
 #' @export
-#' @useDynLib ProFAST, .registration = TRUE
+#' @useDynLib FAST, .registration = TRUE
 #' @importFrom  Matrix sparseMatrix
 #'
 #'
-ProFAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "poisson"),
+FAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "poisson"),
                        AList=NULL, maxIter = 25,
                        epsLogLik = 1e-5,verbose=TRUE, seed=1,
                        error_heter=TRUE, Psi_diag=FALSE, Vint_zero=FALSE){
@@ -154,10 +154,10 @@ ProFAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "pois
   # epsLogLik = 1e-5;verbose=TRUE; error_heter=TRUE; Sigma_diag=TRUE
   #require(Matrix)
   ### Check arguments
-  if(!is.list(XList)) stop("ProFAST_run: XList must be a list!")
-  if(!is.list(AdjList)) stop("ProFAST_run: AdjList must be a list!")
-  if(!is.list(AdjList) || !is.null(AList)) stop("ProFAST_run: AList must be a list or NULL!")
-  if(q<1) stop("ProFAST_run: q must be an integer greater than 0!")
+  if(!is.list(XList)) stop("FAST_run: XList must be a list!")
+  if(!is.list(AdjList)) stop("FAST_run: AdjList must be a list!")
+  if(!is.list(AdjList) || !is.null(AList)) stop("FAST_run: AList must be a list or NULL!")
+  if(q<1) stop("FAST_run: q must be an integer greater than 0!")
   
   
   for(r in seq_along(XList)){
@@ -263,7 +263,7 @@ get_r2_mcfadden <- function(embeds, y){
   # library(performance)
   dat_r2_mac <- NULL
   
-  # data('dat_r2_mac', package = "ProFAST")
+  # data('dat_r2_mac', package = "FAST")
   y <- as.numeric(as.factor(y))
   model1 <- nnet::multinom(y~embeds)
   R2 <- r2_mcfadden(model1)
@@ -272,21 +272,21 @@ get_r2_mcfadden <- function(embeds, y){
 
 
 # Design high-level function using PRECAST objects -------------------------
-#' Set parameters for ProFAST model
-#' @description  Prepare parameters setup for ProFAST model fitting.
+#' Set parameters for FAST model
+#' @description  Prepare parameters setup for FAST model fitting.
 #' @param maxIter the maximum iteration of ICM-EM algorithm. The default is 30.
 #' @param epsLogLik an optional positive vlaue, tolerance of relative variation rate of the observed pseudo loglikelihood value, defualt as '1e-5'.
-#' @param error_heter a logical value, whether use the heterogenous error for ProFAST model, default as \code{TRUE}. If \code{error.heter=FALSE}, then the homogenuous error is used.
+#' @param error_heter a logical value, whether use the heterogenous error for FAST model, default as \code{TRUE}. If \code{error.heter=FALSE}, then the homogenuous error is used.
 #' @param Psi_diag a logical value, whether set the conditional covariance matrices of intrisic CAR to diagonal, default as \code{FALSE}
 #' @param verbose a logical value, whether output the information in iteration.
 #' @param seed a postive integer, the random seed to be set in initialization.
 #' @export
 #' @return return a list including the parameters set in the arguments.
 #' @examples
-#' model_set_ProFAST(maxIter = 30, epsLogLik = 1e-5,
+#' model_set_FAST(maxIter = 30, epsLogLik = 1e-5,
 #'   error_heter=TRUE, Psi_diag=FALSE, verbose=TRUE, seed=2023)
 #'
-model_set_ProFAST <- function(maxIter = 30, epsLogLik = 1e-5,
+model_set_FAST <- function(maxIter = 30, epsLogLik = 1e-5,
                               error_heter=TRUE, Psi_diag=FALSE, verbose=TRUE, seed=1){
   
   para_settings <- list(maxIter = maxIter, seed=seed,
@@ -296,25 +296,25 @@ model_set_ProFAST <- function(maxIter = 30, epsLogLik = 1e-5,
 }
 
 
-#' (Varitional) ICM-EM algorithm for implementing ProFAST model with structurized parameters
+#' (Varitional) ICM-EM algorithm for implementing FAST model with structurized parameters
 #'
-#' @param XList an M-length list consisting of multiple matrices with class dgCMatrix or matrix that specify the count/log-count gene expression matrix for each data batch used for ProFAST model.
-#' @param AdjList an M-length list of sparse matrices with class dgCMatrix, specify the adjacency matrix used for intrisic CAR model in ProFAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
-#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in ProFAST
-#' @param fit.model an optional string, specify the version of ProFAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as gaussian due to fastter computation.
-#' @param parameterList an optional list, specify other parameters in ProFAST model; see \code{\link{model_set_ProFAST}} for other paramters. The default is \code{NULL} that means the default parameters produced by \code{\link{model_set_ProFAST}} is used.
-#' @return return a list including the following components: (1) hV: an M-length list consisting of spatial embeddings in ProFAST; (2) nu: the estimated intercept vector; (3) Psi: the estimated covariance matrix; (4) W: the estimated shared loading matrix; (5) Lam: the estimated covariance matrix of error term; (6): ELBO: the ELBO value when algorithm convergence; (7) ELBO_seq: the ELBO values for all itrations.
+#' @param XList an M-length list consisting of multiple matrices with class dgCMatrix or matrix that specify the count/log-count gene expression matrix for each data batch used for FAST model.
+#' @param AdjList an M-length list of sparse matrices with class dgCMatrix, specify the adjacency matrix used for intrisic CAR model in FAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
+#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in FAST
+#' @param fit.model an optional string, specify the version of FAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as gaussian due to fastter computation.
+#' @param parameterList an optional list, specify other parameters in FAST model; see \code{\link{model_set_FAST}} for other paramters. The default is \code{NULL} that means the default parameters produced by \code{\link{model_set_FAST}} is used.
+#' @return return a list including the following components: (1) hV: an M-length list consisting of spatial embeddings in FAST; (2) nu: the estimated intercept vector; (3) Psi: the estimated covariance matrix; (4) W: the estimated shared loading matrix; (5) Lam: the estimated covariance matrix of error term; (6): ELBO: the ELBO value when algorithm convergence; (7) ELBO_seq: the ELBO values for all itrations.
 #' @details None
-#' @seealso \code{\link{ProFAST_run}}, \code{\link{ProFAST}}, \code{\link{model_set_ProFAST}}
+#' @seealso \code{\link{FAST_run}}, \code{\link{FAST}}, \code{\link{model_set_FAST}}
 #' @references None
 #' @export
 #'
 #'
-ProFAST_structure <- function(XList, AdjList, q= 15,  fit.model = c("poisson", "gaussian"), 
+FAST_structure <- function(XList, AdjList, q= 15,  fit.model = c("poisson", "gaussian"), 
                                parameterList = NULL){
   
   if(is.null(parameterList)){
-    parameterList <- model_set_ProFAST()
+    parameterList <- model_set_FAST()
   }
   ### initialize para: 6 arguments.
   maxIter <- epsLogLik<- verbose<- NULL
@@ -327,56 +327,56 @@ ProFAST_structure <- function(XList, AdjList, q= 15,  fit.model = c("poisson", "
   fit.model <- match.arg(fit.model)
   
   
-  resList <- ProFAST_run(XList=XList, AdjList=AdjList, q = q,  fit.model = fit.model,
+  resList <- FAST_run(XList=XList, AdjList=AdjList, q = q,  fit.model = fit.model,
                          AList= NULL, maxIter = maxIter, seed=seed,
                          epsLogLik = epsLogLik,verbose=verbose,
                          error_heter=error_heter, Psi_diag=Psi_diag, Vint_zero=FALSE)
   return(resList)
 }
 
-#' Add ProFAST model settings for a PRECASTObj object
+#' Add FAST model settings for a PRECASTObj object
 #'
 #' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
-#' @param ... other arguments to be passed to \code{\link{model_set_ProFAST}} function.
+#' @param ... other arguments to be passed to \code{\link{model_set_FAST}} function.
 #' @references None
 #' @return  Return a revised PRECASTObj object with slot \code{parameterList} changed.
 #' @export
 #'
 #'
-AddParSettingProFAST <- function(PRECASTObj, ...){
-  PRECASTObj@parameterList <- model_set_ProFAST(...)
+AddParSettingFAST <- function(PRECASTObj, ...){
+  PRECASTObj@parameterList <- model_set_FAST(...)
   return(PRECASTObj)
 }
   
-#' Run ProFAST model for a PRECASTObj object
+#' Run FAST model for a PRECASTObj object
 #'
 #' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
-#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in ProFAST
-#' @param fit.model an optional string, specify the version of ProFAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as poisson.
+#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in FAST
+#' @param fit.model an optional string, specify the version of FAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as poisson.
 #' @references None
-#' @return  Return a revised PRECASTObj object with slot \code{PRECASTObj@resList} added by a \code{ProFAST} compoonent.
+#' @return  Return a revised PRECASTObj object with slot \code{PRECASTObj@resList} added by a \code{FAST} compoonent.
 #' @export
 #' @importFrom Matrix t
 #' @importFrom Seurat DefaultAssay 
 #'
 #'
 
-ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
+FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   # suppressMessages(rrequire(Matrix))
   # suppressMessages(rrequire(Seurat))
   
   ## Arguments checking
   if(!inherits(PRECASTObj, "PRECASTObj")) 
-    stop("ProFAST: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
-  if(q < 1) stop("ProFAST: Check the argument: q!  q must be a positive integer.")
-  if(is.null(PRECASTObj@seulist)) stop("ProFAST: Check the argument: PRECASTObj! The slot seulist in PRECASTObj is NULL!")
+    stop("FAST: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
+  if(q < 1) stop("FAST: Check the argument: q!  q must be a positive integer.")
+  if(is.null(PRECASTObj@seulist)) stop("FAST: Check the argument: PRECASTObj! The slot seulist in PRECASTObj is NULL!")
   if(!(fit.model %in% c("poisson", "gaussian")))
-    stop("ProFAST: Check the argument: fit.model! fit.model must either be 'poisson' or 'gaussian'.")
+    stop("FAST: Check the argument: fit.model! fit.model must either be 'poisson' or 'gaussian'.")
   if(is.null(PRECASTObj@AdjList))
-    stop("ProFAST: Check the argument: PRECASTObj! The slot AdjList in PRECASTObj is NULL! Please run AddAdjList() first!")
+    stop("FAST: Check the argument: PRECASTObj! The slot AdjList in PRECASTObj is NULL! Please run AddAdjList() first!")
   para_names <- c("maxIter", "epsLogLik", "verbose", "error_heter", "Psi_diag", "seed")
   if(length(setdiff(para_names, names(PRECASTObj@parameterList))) > 0)
-     stop("ProFAST: Check the argument: PRECASTObj! The slot parameterList lacks some key arguments! Please run AddParSettingProFAST() first!")
+     stop("FAST: Check the argument: PRECASTObj! The slot parameterList lacks some key arguments! Please run AddParSettingFAST() first!")
   ## Finish checking
   
   
@@ -386,11 +386,11 @@ ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   verbose <- PRECASTObj@parameterList$verbose
   if(verbose){
     if(fit.model=="poisson"){
-      message( "******","Run the Poisson version of ProFAST...")
+      message( "******","Run the Poisson version of FAST...")
     }else if(fit.model== "gaussian"){
-      message( "******","Run the Gaussian version of ProFAST...")
+      message( "******","Run the Gaussian version of FAST...")
     }else{
-      stop("ProFAST: Check the argument: fit.model! It is not supported for this fit.model!")
+      stop("FAST: Check the argument: fit.model! It is not supported for this fit.model!")
     }
   }
     
@@ -403,18 +403,18 @@ ProFAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
     }else if(fit.model=='gaussian'){
       dat <- Matrix::t(seu[[assay]]@data)
     }else{
-      stop("ProFAST: Check the argument: fit.model! It is not supported for this fit.model!")
+      stop("FAST: Check the argument: fit.model! It is not supported for this fit.model!")
     }
     
     return(dat)
   }
   XList <- lapply(PRECASTObj@seulist,  get_data, fit.model=fit.model)
   
-  # PRECASTObj@resList$ProFAST <- list()
-  PRECASTObj@resList$ProFAST <- ProFAST_structure(XList, q= 15,  fit.model = fit.model, 
+  # PRECASTObj@resList$FAST <- list()
+  PRECASTObj@resList$FAST <- FAST_structure(XList, q= 15,  fit.model = fit.model, 
                                           AdjList = PRECASTObj@AdjList, parameterList = PRECASTObj@parameterList)
   
-  .logDiffTime(sprintf(paste0("%s Finish ProFAST"), "*****"), t1 = tstart, verbose = verbose)
+  .logDiffTime(sprintf(paste0("%s Finish FAST"), "*****"), t1 = tstart, verbose = verbose)
   return(PRECASTObj)
 }
 
@@ -845,7 +845,7 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 
 
 #' Integrate multiple SRT data into a Seurat object
-#' @description  Integrate multiple SRT data based on the \code{PRECASTObj} object by ProFAST and other model fitting.
+#' @description  Integrate multiple SRT data based on the \code{PRECASTObj} object by FAST and other model fitting.
 #' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
 #' @param seulist_HK a list with Seurat object as component including only the housekeeping genes.
 #' @param Method a string, specify the method to be used and two methods are supprted: \code{iSC-MEB} and \code{HarmonyLouvain}. The default is \code{iSC-MEB}.
@@ -861,7 +861,7 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-`
 #' @importFrom PRECAST Add_embed
 #' @import gtools
-#' @useDynLib ProFAST, .registration = TRUE
+#' @useDynLib FAST, .registration = TRUE
 #'
 IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "HarmonyLouvain"), seuList_raw=NULL, 
                              covariates_use=NULL, Tm=NULL, subsample_rate= 1, verbose=TRUE){
@@ -1031,23 +1031,23 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
   count <- sparseMatrix(i=1,j=1, x=1, dims=dim(t(hX_pois)))
   row.names(count) <- colnames(hX_pois)
   colnames(count) <- row.names(hX_pois)
-  seuInt <- CreateSeuratObject(counts = count, project = "ProFAST", assay = "ProFAST", meta.data = meta_data)
+  seuInt <- CreateSeuratObject(counts = count, project = "FAST", assay = "RNA", meta.data = meta_data)
   row.names(hX_pois) <- colnames(seuInt)
-  seuInt[["ProFAST"]]@data <- t(hX_pois)
+  seuInt[["RNA"]]@data <- t(hX_pois)
   
-  seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$ProFAST$hV), seuInt, embed_name = 'profast', assay='ProFAST')
+  seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$FAST$hV), seuInt, embed_name = 'FAST', assay='RNA')
   if(Method=="iSC-MEB"){
     seuInt$cluster <- factor(unlist(PRECASTObj@resList$iSCMEB$cluster))
-    seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$iSCMEB$alignedEmbed), seuInt, embed_name = 'iscmeb', assay='ProFAST')
+    seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$iSCMEB$alignedEmbed), seuInt, embed_name = 'iscmeb', assay='RNA')
     Idents(seuInt) <- factor(seuInt$cluster)
   }else if(Method=='HarmonyLouvain'){
     seuInt$cluster <-factor(as.numeric(unlist(PRECASTObj@resList$Louvain$cluster)))
-    seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$Harmony$harmonyembed), seuInt, embed_name = 'harmony', assay='ProFAST')
+    seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$Harmony$harmonyembed), seuInt, embed_name = 'harmony', assay='RNA')
     Idents(seuInt) <- factor(as.numeric(unlist(PRECASTObj@resList$Louvain$cluster)))
   }
   
   posList <- lapply(PRECASTObj@seulist, function(x) cbind(x$row, x$col))
-  seuInt <- Add_embed(matlist2mat(posList), seuInt, embed_name = 'position', assay='ProFAST')
+  seuInt <- Add_embed(matlist2mat(posList), seuInt, embed_name = 'position', assay='RNA')
   
   .logDiffTime(sprintf(paste0("%s Finish results arrangement"), "*****"), t1 = tstart, verbose = verbose)
   

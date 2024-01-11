@@ -205,9 +205,9 @@ fit.iscmeb <- function(
 }
 
 #' Fit an iSC-MEB model using specified multi-section embeddings
-#' @description  Integrate multiple SRT data based on the PRECASTObj by ProFAST and iSC-MEB model fitting.
+#' @description  Integrate multiple SRT data based on the PRECASTObj by FAST and iSC-MEB model fitting.
 #' @param VList a M-length list of embeddings. The i-th element is a ni * q matrtix, where ni is the number of spots of sample i, and q is the number of embeddings. We provide this interface for those users who would like to define the embeddings by themselves.
-#' @param AdjList an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in ProFAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
+#' @param AdjList an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in FAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.
 #' @param K an integer, specify the number of clusters.
 #' @param beta_grid an optional vector of positive value, the candidate set of the smoothing parameter to be searched by the grid-search optimization approach, defualt as a sequence starts from 0, ends with 5, increase by 0.2.
 #' @param maxIter the maximum iteration of ICM-EM algorithm. The default is 25.
@@ -269,8 +269,8 @@ drLouvain <- function(hZ, resolution=0.8){
   return(seu$seurat_clusters)
 }
 
-#' Embedding alignment and clustering based on the embeddings from ProFAST
-#' @description  Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from ProFAST as well as determining the number of clusters.
+#' Embedding alignment and clustering based on the embeddings from FAST
+#' @description  Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from FAST as well as determining the number of clusters.
 #' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
 #' @param resolution 	an optional real, the value of the resolution parameter, use a value above (below) 1.0 if you want to obtain a larger (smaller) number of communities.
 #' @return Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} added by a \code{Harmony} compoonent (including the aligned embeddings and embeddings of batch effects) and a \code{Louvain} component (including the clusters).
@@ -282,22 +282,22 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   # require(Seurat)
   #require(harmony)
   
-  if(is.null(PRECASTObj@resList$ProFAST))
-    stop("RunHarmonyLouvain: Check the argument: PRECASTObj!  The component ProFAST in PRECASTObj@resList is NULL! Please run ProFAST() first!")
+  if(is.null(PRECASTObj@resList$FAST))
+    stop("RunHarmonyLouvain: Check the argument: PRECASTObj!  The component FAST in PRECASTObj@resList is NULL! Please run FAST() first!")
   
   
   seed <- PRECASTObj@parameterList$seed
   verbose <- PRECASTObj@parameterList$verbose
   if(verbose)
-    message( "******","Use Harmony to remove batch in the embeddings from ProFAST...")
+    message( "******","Use Harmony to remove batch in the embeddings from FAST...")
   tstart <- Sys.time()
   
-  sampleID <- get_sampleID(PRECASTObj@resList$ProFAST$hV)
-  nvec <- sapply(PRECASTObj@resList$ProFAST$hV, nrow)
+  sampleID <- get_sampleID(PRECASTObj@resList$FAST$hV)
+  nvec <- sapply(PRECASTObj@resList$FAST$hV, nrow)
   
   set.seed(seed)
   tic <- proc.time()
-  hZ_harmony_profastP <- HarmonyMatrix(matlist2mat(PRECASTObj@resList$ProFAST$hV), meta_data = data.frame(sample = sampleID),
+  hZ_harmony_FASTP <- HarmonyMatrix(matlist2mat(PRECASTObj@resList$FAST$hV), meta_data = data.frame(sample = sampleID),
                                        vars_use = "sample", do_pca = F)
   toc <- proc.time()
   .logDiffTime(sprintf(paste0("%s Finish Harmony correction"), "*****"), t1 = tstart, verbose = verbose)
@@ -305,28 +305,28 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   if(verbose)
     message( "******","Use Louvain to cluster and determine the number of clusters...")
   tstart <- Sys.time()
-  res_louvain_harmony_profastP <- drLouvain(hZ_harmony_profastP, resolution = resolution)
+  res_louvain_harmony_FASTP <- drLouvain(hZ_harmony_FASTP, resolution = resolution)
   ## Get the batch embed in Harmony
-  lm1 <- lm(matlist2mat(PRECASTObj@resList$ProFAST$hV)~hZ_harmony_profastP)
+  lm1 <- lm(matlist2mat(PRECASTObj@resList$FAST$hV)~hZ_harmony_FASTP)
   batchembed <- mat2list(residuals(lm1), nvec = nvec)
   rm(lm1)
   PRECASTObj@resList$Harmony <- list()
-  PRECASTObj@resList$Harmony$harmonyembed <- mat2list(hZ_harmony_profastP, nvec=nvec)
+  PRECASTObj@resList$Harmony$harmonyembed <- mat2list(hZ_harmony_FASTP, nvec=nvec)
   PRECASTObj@resList$Harmony$batchEmbed <- batchembed
   PRECASTObj@resList$Louvain <- list()
-  PRECASTObj@resList$Louvain$cluster <- vec2list(res_louvain_harmony_profastP, nvec=nvec)
+  PRECASTObj@resList$Louvain$cluster <- vec2list(res_louvain_harmony_FASTP, nvec=nvec)
   .logDiffTime(sprintf(paste0("%s Finsh Louvain clustering and find the optimal number of clusters"), "*****"), t1 = tstart, verbose = verbose)
   
   
-  PRECASTObj@parameterList$K_opt <- length(unique(res_louvain_harmony_profastP))
+  PRECASTObj@parameterList$K_opt <- length(unique(res_louvain_harmony_FASTP))
   return(PRECASTObj)
   
 }
 
 
 
-#' Fit an iSC-MEB model using the embeddings from ProFAST
-#' @description  Fit an iSC-MEB model using the embeddings from ProFAST and the number of clusters obtained by Louvain.
+#' Fit an iSC-MEB model using the embeddings from FAST
+#' @description  Fit an iSC-MEB model using the embeddings from FAST and the number of clusters obtained by Louvain.
 #' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
 #' @param ... other arguments passed to \code{\link{iscmeb_run}}.
 #' @return Return a revised PRECASTObj object with an added component \code{iSCMEB} in the slot \code{PRECASTObj@resList} (including the aligned embeddings, clusters and posterior probability matrix of clusters).
@@ -338,19 +338,19 @@ RuniSCMEB <- function(PRECASTObj, ...){
   ### Arguments checking
   if(!inherits(PRECASTObj, "PRECASTObj")) 
     stop("RuniSCMEB: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
-  if(is.null(PRECASTObj@resList)) stop("RuniSCMEB: Check the argument: PRECASTObj! The slot PRECASTObj@resList is NULL! Please run ProFAST() first!")
-  if(is.null(PRECASTObj@resList$ProFAST)) 
-    stop("RuniSCMEB: Check the argument: PRECASTObj!  The component ProFAST in PRECASTObj@resList is NULL! Please run ProFAST() first!")
+  if(is.null(PRECASTObj@resList)) stop("RuniSCMEB: Check the argument: PRECASTObj! The slot PRECASTObj@resList is NULL! Please run FAST() first!")
+  if(is.null(PRECASTObj@resList$FAST)) 
+    stop("RuniSCMEB: Check the argument: PRECASTObj!  The component FAST in PRECASTObj@resList is NULL! Please run FAST() first!")
   
   verbose <- PRECASTObj@parameterList$verbose
   if(verbose)
-    message( "******","Perform embedding alignment and spatial clustering using iSC-MEB based on  the embeddings obtained by ProFAST...")
+    message( "******","Perform embedding alignment and spatial clustering using iSC-MEB based on  the embeddings obtained by FAST...")
   tstart <- Sys.time()
   
   
   tic <- proc.time()
   reslist_iscmeb <- iscmeb_run(
-    PRECASTObj@resList$ProFAST$hV,
+    PRECASTObj@resList$FAST$hV,
     PRECASTObj@AdjList,
     K=PRECASTObj@parameterList$K_opt, ...)
   toc <- proc.time()

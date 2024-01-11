@@ -4,6 +4,12 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/articles/FASTdlpfc2.html</loc>
+  </url>
+  <url>
+    <loc>/articles/FASTsimu.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
@@ -19,7 +25,19 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/AddParSettingFAST.html</loc>
+  </url>
+  <url>
     <loc>/reference/AddParSettingProFAST.html</loc>
+  </url>
+  <url>
+    <loc>/reference/FAST.html</loc>
+  </url>
+  <url>
+    <loc>/reference/FAST_run.html</loc>
+  </url>
+  <url>
+    <loc>/reference/FAST_structure.html</loc>
   </url>
   <url>
     <loc>/reference/get_r2_mcfadden.html</loc>
@@ -32,6 +50,9 @@
   </url>
   <url>
     <loc>/reference/iscmeb_run.html</loc>
+  </url>
+  <url>
+    <loc>/reference/model_set_FAST.html</loc>
   </url>
   <url>
     <loc>/reference/model_set_ProFAST.html</loc>

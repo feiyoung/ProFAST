@@ -13,7 +13,7 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction">
 <meta property="og:description" content="Probabilistic factor analysis for spatially-aware dimension reduction across multi-section spatial transcriptomics data with millions of spatial locations.
-    More details can be referred to Wei Liu, et al. (2023) &lt;doi:10.1038/s41467-023-35947-w&gt;.">
+    More details can be referred to Wei Liu, et al. (2023) &lt;doi:10.1101/2023.07.11.548486&gt;.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">ProFAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3</span>
       </span>
     </div>
 
@@ -51,10 +51,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/ProFASTdlpfc2.html">ProFAST: two DLPFC sections</a>
+      <a href="articles/FASTdlpfc2.html">FAST: two DLPFC sections</a>
     </li>
     <li>
-      <a href="articles/ProFASTsimu.html">ProFAST: simulation</a>
+      <a href="articles/FASTsimu.html">FAST: simulation</a>
     </li>
   </ul>
 </li>
@@ -84,7 +84,7 @@
 </h1></div>
 <p>========================================================================= <!-- badges: start --></p>
 <p><a href="https://cran.r-project.org/package=ProFAST" class="external-link"><img src="https://www.r-pkg.org/badges/version-ago/ProFAST"></a> <a href="https://cran.r-project.org/package=ProFAST" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/ProFAST?color=orange"></a> <a href="https://cran.r-project.org/package=ProFAST" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/ProFAST?color=orange"></a> <!-- badges: end --></p>
-<p>ProFAST is a probabilistic factor analysis method for spatially-aware dimension reduction across multi-section spatial transcriptomics data. <code>ProFAST</code> is also a package for analyzing multiple spatially resolved transcriptomics (SRT) datasets, developed by the Jin Liu’s lab.</p>
+<p>FAST is an advanced probabilistic factor analysis technique designed for spatially-aware dimension reduction in multi-section spatial transcriptomics data. The ‘ProFAST’ package incorporates the FAST method and is specifically developed by the Jin Liu’s lab for the comprehensive analysis of multiple spatially resolved transcriptomics (SRT) datasets.</p>
 <p>Check out our <a href="https://feiyoung.github.io/ProFAST/index.html" class="external-link">Package Website</a> for a more complete description of the methods and analyses.</p>
 <p>ProFAST can be used to compare and contrast experimental datasets in a variety of contexts, for instance:</p>
 <ul>
@@ -118,17 +118,17 @@
 <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"feiyoung/ProFAST"</span><span class="op">)</span>
 
 <span class="co"># If some dependent packages (such as `scater`) on Bioconductor can not be installed nomrally, use following commands, then run abouve command.</span>
-<span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="co">## install BiocManager</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="co">## install BiocManager</span>
     <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span>
 <span class="co"># install the package on Bioconducter</span>
-<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scater"</span><span class="op">)</span><span class="op">)</span></code></pre>
+<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scater"</span><span class="op">)</span><span class="op">)</span></code></pre>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <p>For usage examples and guided walkthroughs, check the <code>vignettes</code> directory of the repo.</p>
 <ul>
-<li><a href="https://feiyoung.github.io/ProFAST/articles/ProFASTsimu.html" class="external-link">Integration analysis for a toy example with three batches</a></li>
-<li><a href="https://feiyoung.github.io/ProFAST/articles/ProFASTdlpfc2.html" class="external-link">Integration analysis for DLPFC data with two batches</a></li>
+<li><a href="https://feiyoung.github.io/ProFAST/articles/FASTsimu.html" class="external-link">Integration analysis for a toy example with three batches</a></li>
+<li><a href="https://feiyoung.github.io/ProFAST/articles/FASTdlpfc2.html" class="external-link">Integration analysis for DLPFC data with two batches</a></li>
 </ul>
 <p>For the users that don’t have set up system properly, the following setup on different systems can be referred. ## Setup on Windows system First, download <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a>; second, add the Rtools directory to the environment variable.</p>
 </div>
@@ -146,10 +146,10 @@
 conda install -c bioconda bioconductor-scater</code></pre>
 <p>For the user not using conda environment, if dependent packages (such as <code>scater</code>) not normally installed are in Bioconductor, then use the following command to install the dependent packages.</p>
 <pre class="{linux}"><code><span class="co"># install BiocManager</span>
-<span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
+<span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
     <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span>
 <span class="co"># install the package on Bioconducter</span>
-<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scater"</span><span class="op">)</span><span class="op">)</span></code></pre>
+<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scater"</span><span class="op">)</span><span class="op">)</span></code></pre>
 <p>If dependent packages (such as <code>DR.SC</code>) not normally installed are in CRAN, then use the following command to install the dependent packages.</p>
 <pre class="{linux}"><code><span class="co"># install the package on CRAN</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DR.SC"</span><span class="op">)</span></code></pre>
@@ -163,8 +163,10 @@ conda install -c bioconda bioconductor-scater</code></pre>
 <div class="section level1">
 <h1 id="news">NEWs<a class="anchor" aria-label="anchor" href="#news"></a>
 </h1>
-<p>ProFAST version 1.1 (2023-06-03)</p>
-<ul><li>ProFAST version 1.1 is released!</li></ul>
+<ul>
+<li><p>ProFAST version 1.3 (2024-01-09)</p></li>
+<li><p>ProFAST version 1.1 (2023-06-03)</p></li>
+</ul>
 </div>
 
   </div>
@@ -173,6 +175,7 @@ conda install -c bioconda bioconductor-scater</code></pre>
     <div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=ProFAST" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/feiyoung/ProFAST/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/feiyoung/ProFAST/issues" class="external-link">Report a bug</a></li>
 </ul>

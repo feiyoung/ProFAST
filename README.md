@@ -8,7 +8,7 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/ProFAST?color=orange)](https://cran.r-project.org/package=ProFAST)
 <!-- badges: end -->
 
-ProFAST is a  probabilistic factor analysis method for spatially-aware dimension reduction across multi-section spatial transcriptomics data. `ProFAST`  is also a package for  analyzing multiple spatially resolved transcriptomics (SRT) datasets, developed by the Jin Liu's lab. 
+FAST is an advanced probabilistic factor analysis technique designed for spatially-aware dimension reduction in multi-section spatial transcriptomics data. The 'ProFAST' package incorporates the FAST method and is specifically developed by the Jin Liu's lab for the comprehensive analysis of multiple spatially resolved transcriptomics (SRT) datasets.
 
 Check out  our [Package Website](https://feiyoung.github.io/ProFAST/index.html) for a more complete description of the methods and analyses. 
 
@@ -54,8 +54,8 @@ BiocManager::install(c("scater"))
 ## Usage
 For usage examples and guided walkthroughs, check the `vignettes` directory of the repo. 
 
-* [Integration analysis for a toy example with three batches](https://feiyoung.github.io/ProFAST/articles/ProFASTsimu.html)
-* [Integration  analysis for DLPFC data with two batches](https://feiyoung.github.io/ProFAST/articles/ProFASTdlpfc2.html)
+* [Integration analysis for a toy example with three batches](https://feiyoung.github.io/ProFAST/articles/FASTsimu.html)
+* [Integration  analysis for DLPFC data with two batches](https://feiyoung.github.io/ProFAST/articles/FASTdlpfc2.html)
 
 
 
@@ -97,8 +97,8 @@ install.packages("DR.SC")
 For an example of typical ProFAST usage, please see our [Package Website](https://feiyoung.github.io/ProFAST/index.html) for a demonstration and overview of the functions included in ProFAST.
 
 # NEWs
-ProFAST version 1.1 (2023-06-03)
+* ProFAST version 1.3 (2024-01-09)
 
-* ProFAST version 1.1 is released!
+* ProFAST version 1.1 (2023-06-03)
 
 

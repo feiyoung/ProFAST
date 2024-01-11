@@ -1,8 +1,8 @@
 Package: ProFAST
 Type: Package
 Title: Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction
-Version: 1.2
-Date: 2023-06-08
+Version: 1.3
+Date: 2024-01-09
 Authors@R: 
     c(person(given = "Wei",
              family = "Liu",
@@ -17,7 +17,7 @@ Authors@R:
 Author: Wei Liu [aut, cre], Xiao Zhang [aut], Jin Liu [aut]
 Maintainer: Wei Liu <wei.liu@duke-nus.edu.sg>
 Description: Probabilistic factor analysis for spatially-aware dimension reduction across multi-section spatial transcriptomics data with millions of spatial locations.
-    More details can be referred to Wei Liu, et al. (2023) <doi:10.1038/s41467-023-35947-w>.
+    More details can be referred to Wei Liu, et al. (2023) <doi:10.1101/2023.07.11.548486>.
 License: GPL-3
 Depends: 
     R (>= 4.0.0),

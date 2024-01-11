@@ -445,7 +445,7 @@ void runICM_sp_embed(const arma::field<mat>& Vf, arma::field<ivec>& yf, arma::fi
     vec mSk;
     for (k = 0; k < K; k++)	{
       //Rprintf("k= %d \n", k);
-      SrkI = inv_sympd(Psi0.slice(r) + diagmat(Lam0.row(r)) + Sigma0.slice(k));
+      SrkI = inv(Psi0.slice(r) + diagmat(Lam0.row(r)) + Sigma0.slice(k));
       
       
       VSrk = (Vf(r) -Muf(r)-repmat(Mu0.row(k), n, 1))* SrkI; // O(nq^2)
@@ -511,7 +511,7 @@ void runICM_sp_embed(const arma::field<mat>& Vf, arma::field<ivec>& yf, arma::fi
           // Rprintf("k= %d,  nk = %d ! \n", k, nk);
           if(nk > 0){// if the number of spots whose cluster is k is greater than 0
             Ff(r).rows(index_k) = ((Vf(r).rows(index_k)- repmat(Mu0.row(k), nk,1))* (Sigma0.slice(k)+ diagmat(Lam0.row(r))).i()  + Muf(r).rows(index_k)* Psi0.slice(r).i()) * 
-              inv_sympd((Sigma0.slice(k)+ diagmat(Lam0.row(r))).i() + Psi0.slice(r).i());
+              inv((Sigma0.slice(k)+ diagmat(Lam0.row(r))).i() + Psi0.slice(r).i());
             
           }
           

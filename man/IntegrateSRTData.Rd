@@ -36,7 +36,7 @@ IntegrateSRTData(
 Return a Seurat object by integrating all SRT data batches into a SRT data, where the column "batch" in the meta.data represents the batch ID, and the column "cluster" represents the clusters. The embeddings are put in \code{seu@reductions} slot and \code{Idents(seu)} is set to cluster label. Note that only the normalized expression is valid in the data slot while count is invalid.
 }
 \description{
-Integrate multiple SRT data based on the \code{PRECASTObj} object by ProFAST and other model fitting.
+Integrate multiple SRT data based on the \code{PRECASTObj} object by FAST and other model fitting.
 }
 \details{
 If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment \code{subsample_rate}. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations.
