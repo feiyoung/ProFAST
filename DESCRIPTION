@@ -43,7 +43,7 @@ Imports:
     stats,
     utils
 LazyData: true
-URL: https://github.com/feiyoung/ProFAST
+URL: https://github.com/feiyoung/ProFAST, https://feiyoung.github.io/ProFAST/
 BugReports: https://github.com/feiyoung/ProFAST/issues
 Suggests: 
     knitr,
