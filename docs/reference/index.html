@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ProFAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4</span>
       </span>
     </div>
 
@@ -32,10 +32,19 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/FASTdlpfc2.html">ProFAST: two DLPFC sections</a>
+      <a href="../articles/CosMx.html">CoFAST: NSCLC CosMx data coembedding</a>
     </li>
     <li>
-      <a href="../articles/FASTsimu.html">ProFAST: simulation</a>
+      <a href="../articles/FASTdlpfc.html">FAST: single DLPFC section</a>
+    </li>
+    <li>
+      <a href="../articles/FASTdlpfc2.html">FAST: two DLPFC sections</a>
+    </li>
+    <li>
+      <a href="../articles/FASTsimu.html">FAST: simulation</a>
+    </li>
+    <li>
+      <a href="../articles/pbmc3k.html">CoFAST: PBMC scRNA-seq data coembedding</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -61,9 +70,25 @@
           <p class="section-desc"></p>
         </th>
       </tr></tbody><tbody><tr><td>
+          <p><code><a href="AddAdj.html">AddAdj()</a></code> </p>
+        </td>
+        <td><p>Calculate the adjacency matrix given a spatial coordinate matrix</p></td>
+      </tr><tr><td>
           <p><code><a href="AddParSettingFAST.html">AddParSettingFAST()</a></code> </p>
         </td>
         <td><p>Add FAST model settings for a PRECASTObj object</p></td>
+      </tr><tr><td>
+          <p><code><a href="coembedding_umap.html">coembedding_umap()</a></code> </p>
+        </td>
+        <td><p>Calculate UMAP projections for coembedding of cells and features</p></td>
+      </tr><tr><td>
+          <p><code><a href="coembed_plot.html">coembed_plot()</a></code> </p>
+        </td>
+        <td><p>Coembedding dimensional reduction plot</p></td>
+      </tr><tr><td>
+          <p><code><a href="diagnostic.cor.eigs.html">diagnostic.cor.eigs()</a></code> </p>
+        </td>
+        <td><p>Determine the dimension of low dimensional embedding</p></td>
       </tr><tr><td>
           <p><code><a href="FAST.html">FAST()</a></code> </p>
         </td>
@@ -73,9 +98,21 @@
         </td>
         <td><p>(Varitional) ICM-EM algorithm for implementing FAST model</p></td>
       </tr><tr><td>
+          <p><code><a href="FAST_single.html">FAST_single()</a></code> </p>
+        </td>
+        <td><p>Fit FAST model for single-section SRT data</p></td>
+      </tr><tr><td>
           <p><code><a href="FAST_structure.html">FAST_structure()</a></code> </p>
         </td>
         <td><p>(Varitional) ICM-EM algorithm for implementing FAST model with structurized parameters</p></td>
+      </tr><tr><td>
+          <p><code><a href="find.signature.genes.html">find.signature.genes()</a></code> </p>
+        </td>
+        <td><p>Find the signature genes for each group of cell/spots</p></td>
+      </tr><tr><td>
+          <p><code><a href="get.top.signature.dat.html">get.top.signature.dat()</a></code> </p>
+        </td>
+        <td><p>Obtain the top signature genes and related information</p></td>
       </tr><tr><td>
           <p><code><a href="get_r2_mcfadden.html">get_r2_mcfadden()</a></code> </p>
         </td>
@@ -93,13 +130,25 @@
         </td>
         <td><p>Set parameters for FAST model</p></td>
       </tr><tr><td>
+          <p><code><a href="NCFM.html">NCFM()</a></code> </p>
+        </td>
+        <td><p>Cell-feature coembedding for scRNA-seq data</p></td>
+      </tr><tr><td>
+          <p><code><a href="NCFM_fast.html">NCFM_fast()</a></code> </p>
+        </td>
+        <td><p>Cell-feature coembedding for SRT data</p></td>
+      </tr><tr><td>
+          <p><code><a href="pdistance.html">pdistance()</a></code> </p>
+        </td>
+        <td><p>Calculate the cell-feature distance matrix</p></td>
+      </tr><tr><td>
           <p><code><a href="RunHarmonyLouvain.html">RunHarmonyLouvain()</a></code> </p>
         </td>
-        <td><p>Embedding alignment and clustering based on the embeddings from ProFAST</p></td>
+        <td><p>Embedding alignment and clustering based on the embeddings from FAST</p></td>
       </tr><tr><td>
           <p><code><a href="RuniSCMEB.html">RuniSCMEB()</a></code> </p>
         </td>
-        <td><p>Fit an iSC-MEB model using the embeddings from ProFAST</p></td>
+        <td><p>Fit an iSC-MEB model using the embeddings from FAST</p></td>
       </tr><tr><td>
           <p><code><a href="SelectHKgenes.html">SelectHKgenes()</a></code> </p>
         </td>

@@ -8,18 +8,18 @@
 [![](https://cranlogs.r-pkg.org/badges/grand-total/ProFAST?color=orange)](https://cran.r-project.org/package=ProFAST)
 <!-- badges: end -->
 
-FAST is an advanced probabilistic factor analysis technique designed for spatially-aware dimension reduction in multi-section spatial transcriptomics data. The 'ProFAST' package incorporates the FAST method and is specifically developed by the Jin Liu's lab for the comprehensive analysis of multiple spatially resolved transcriptomics (SRT) datasets.
+FAST is an advanced probabilistic factor analysis technique designed for spatially-aware dimension reduction in multi-section spatial transcriptomics data. The 'ProFAST' package incorporates the FAST method and is specifically developed by the Jin Liu's lab for the comprehensive analysis of multiple spatially resolved transcriptomics (SRT) datasets. Recently, we developed the coembedding method CoFAST that simultaneously estimates the cells/spots and features embeddings in the same space. This coembedding space benefits the signature gene identification and visualization.
 
 Check out  our [Package Website](https://feiyoung.github.io/ProFAST/index.html) for a more complete description of the methods and analyses. 
 
-ProFAST  can be used to compare and contrast experimental datasets in a variety of contexts, for instance:
+FAST  can be used to compare and contrast experimental datasets in a variety of contexts, for instance:
 
 * Across experimental batches
 * Across individuals
 * Across different conditions (i.e., case and control)
 * Across datasets with only partially shared cell/domain clusters
 
-Once the embeddings of multiple datasets are estimated by ProFAST, the package provides functionality for further data exploration, 
+Once the embeddings of multiple datasets are estimated by FAST, the package provides functionality for further data exploration, 
 analysis, and visualization. Users can:
 
 * Align the embeddings obtained by ProFAST
@@ -28,6 +28,14 @@ analysis, and visualization. Users can:
 * Find significant shared (and dataset-specific) gene markers
 * Visuzlize extracted embeddings using 3-dim tSNE and UMAP
 * Visualize clusters and gene expression using tSNE and UMAP
+
+Once the coembeddings of  dataset are estimated by CoFAST, the package provides functionality for further data exploration, 
+analysis, and visualization. Users can:
+
+* Find the signature genes 
+* Visuzlize the coembeddings on UMAP space
+* Visuzlize the signature genes on UMAP space
+
 
 # Installation
 "ProFAST" depends on the 'Rcpp' and 'RcppArmadillo' package, which requires appropriate setup of computer. For the users that have set up system properly for compiling C++ files, the following installation command will work.
@@ -54,9 +62,16 @@ BiocManager::install(c("scater"))
 ## Usage
 For usage examples and guided walkthroughs, check the `vignettes` directory of the repo. 
 
+Tutorials for FAST method:
+
+* [Single-section  analysis for DLPFC data](https://feiyoung.github.io/ProFAST/articles/FASTdlpfc.html)
 * [Integration analysis for a toy example with three batches](https://feiyoung.github.io/ProFAST/articles/FASTsimu.html)
 * [Integration  analysis for DLPFC data with two batches](https://feiyoung.github.io/ProFAST/articles/FASTdlpfc2.html)
 
+Tutorials for CoFAST method:
+
+* [scRNA-seq data analysis for PBMC](https://feiyoung.github.io/ProFAST/articles/pbmc3k.html)
+* [SRT data analysis for NSCLC](https://feiyoung.github.io/ProFAST/articles/CosMx.html)
 
 
 For the users that don't have set up system properly, the following setup on different systems can be referred.
@@ -97,6 +112,8 @@ install.packages("DR.SC")
 For an example of typical ProFAST usage, please see our [Package Website](https://feiyoung.github.io/ProFAST/index.html) for a demonstration and overview of the functions included in ProFAST.
 
 # NEWs
+* ProFAST version 1.4 (2024-03-16)
+
 * ProFAST version 1.3 (2024-01-09)
 
 * ProFAST version 1.1 (2023-06-03)

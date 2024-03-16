@@ -111,6 +111,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// pdistance_cpp
+arma::mat pdistance_cpp(const arma::mat& Ar, const arma::mat& Br, const float& eta);
+RcppExport SEXP _ProFAST_pdistance_cpp(SEXP ArSEXP, SEXP BrSEXP, SEXP etaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Ar(ArSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Br(BrSEXP);
+    Rcpp::traits::input_parameter< const float& >::type eta(etaSEXP);
+    rcpp_result_gen = Rcpp::wrap(pdistance_cpp(Ar, Br, eta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gene_embed_cpp
+arma::mat gene_embed_cpp(const arma::mat& X, const arma::mat& ce_cell);
+RcppExport SEXP _ProFAST_gene_embed_cpp(SEXP XSEXP, SEXP ce_cellSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type ce_cell(ce_cellSEXP);
+    rcpp_result_gen = Rcpp::wrap(gene_embed_cpp(X, ce_cell));
+    return rcpp_result_gen;
+END_RCPP
+}
 // profast_g_cpp
 Rcpp:: List profast_g_cpp(const Rcpp::List& Xlist, const Rcpp::List& Adjlist, const arma::mat& nu_int, const arma::mat& W_int, const arma::mat& Lam_int, const arma::cube& Psi_int, const Rcpp::List& EvList, const int& maxIter, const double& epsLogLik, const bool& verbose, const bool& homo, const bool& Psi_diag);
 RcppExport SEXP _ProFAST_profast_g_cpp(SEXP XlistSEXP, SEXP AdjlistSEXP, SEXP nu_intSEXP, SEXP W_intSEXP, SEXP Lam_intSEXP, SEXP Psi_intSEXP, SEXP EvListSEXP, SEXP maxIterSEXP, SEXP epsLogLikSEXP, SEXP verboseSEXP, SEXP homoSEXP, SEXP Psi_diagSEXP) {
@@ -163,6 +188,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ProFAST_wpcaCpp", (DL_FUNC) &_ProFAST_wpcaCpp, 3},
     {"_ProFAST_correct_one_gene", (DL_FUNC) &_ProFAST_correct_one_gene, 13},
     {"_ProFAST_correct_genes", (DL_FUNC) &_ProFAST_correct_genes, 13},
+    {"_ProFAST_pdistance_cpp", (DL_FUNC) &_ProFAST_pdistance_cpp, 3},
+    {"_ProFAST_gene_embed_cpp", (DL_FUNC) &_ProFAST_gene_embed_cpp, 2},
     {"_ProFAST_profast_g_cpp", (DL_FUNC) &_ProFAST_profast_g_cpp, 12},
     {"_ProFAST_profast_p_cpp", (DL_FUNC) &_ProFAST_profast_p_cpp, 13},
     {NULL, NULL, 0}

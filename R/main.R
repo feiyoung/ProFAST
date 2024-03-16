@@ -1,18 +1,17 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran FAST_1.2.tar.gz
-## usethis::use_data(dat_r2_mac)
+# R CMD check --as-cran ProFAST_1.3.tar.gz
+## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
-# pkgdown::build_article("FASTsimu")
+# pkgdown::build_article("FASTdlpfc") #FASTsimu; pbmc3k; CosMx
 # pkgdown::build_article("FASTdlpfc2")
 # Basic functions ---------------------------------------------------------
 .logDiffTime <- function(main = "", t1 = NULL, verbose = TRUE, addHeader = FALSE,
                          t2 = Sys.time(), units = "mins", header = "*****",
-                         tail = "elapsed.", precision = 3)
-{
+                         tail = "elapsed.", precision = 3){
   
   # main = ""; t1 = NULL; verbose = TRUE; addHeader = FALSE;
   # t2 = Sys.time(); units = "mins"; header = "###########";
@@ -141,7 +140,7 @@ get_indexList <- function(alist){
 #' @seealso \code{\link{FAST_structure}}, \code{\link{FAST}}, \code{\link{model_set_FAST}}
 #' @references None
 #' @export
-#' @useDynLib FAST, .registration = TRUE
+#' @useDynLib ProFAST, .registration = TRUE
 #' @importFrom  Matrix sparseMatrix
 #'
 #'
@@ -271,6 +270,144 @@ get_r2_mcfadden <- function(embeds, y){
 }
 
 
+
+# FAST for single SRT data ------------------------------------------------
+
+
+#' Calculate the adjacency matrix given a spatial coordinate matrix
+#' @description Calculate the adjacency matrix given a spatial coordinate matrix with 2-dimension or 3-dimension or more.
+#' @param pos a matrix object, with columns representing the spatial coordinates that can be any diemsion, i.e., 2, 3 and >3.
+#' @param type an optional string, specify which type of neighbors' definition. Here we provide two definition: one is "fixed_distance", the other is "fixed_number".
+#' @param platform a string, specify the platform of the provided data, default as "Others". There are more platforms to be chosen, including "Visuim", "ST" and "Others" ("Others" represents the other SRT platforms except for 'Visium' and 'ST')
+#'  The platform helps to calculate the adjacency matrix by defining the neighborhoods when type="fixed_distance" is chosen.
+#' @param neighbors an optional postive integer,  specify how many neighbors used in calculation, default as 6. 
+#' @param ... Other arguments passed to \code{\link{getAdj_auto}}.
+#' @return return a sparse matrix, representing the adjacency matrix.
+#' @details When the type = "fixed_distance", then the spots within the Euclidean distance cutoffs from one spot are regarded as the neighbors of this spot. When the type = "fixed_number", the K-nearest spots are regarded as the neighbors of each spot.
+#' 
+#' @seealso None
+#' @references None
+#' @export
+#' @importFrom  RANN nn2
+#' @importFrom DR.SC getAdj_auto
+#' @importFrom PRECAST getAdj_reg getAdj_fixedNumber
+#' @importFrom Matrix sparseMatrix
+#' @examples
+#' data(CosMx_subset)
+#' pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
+#' Adj_sp <- AddAdj(pos)
+#'
+AddAdj <- function(pos, type="fixed_distance", platform=c("Others","Visium", "ST"),
+                   neighbors=6,...){
+  
+  if(!inherits(pos, 'matrix')) stop("AddAdj: pos must be a matrix!")
+  platform <- match.arg(platform)
+  dim.coord <- ncol(pos)
+  message("The spatial cooridnates are ", dim.coord, " dimensions")
+  if(dim.coord == 2){
+   
+    if(tolower(type)=='fixed_distance'){
+      if(tolower(platform) %in% c("st", "visium")){
+        Adj <-  PRECAST::getAdj_reg(pos, platform=platform)
+      }else{
+        Adj <- getAdj_auto(pos, lower.med=neighbors-2, upper.med=neighbors+2,...)
+      }
+    }else if (tolower(type) == "fixed_number") {
+      Adj <- PRECAST::getAdj_fixedNumber(pos, number=neighbors)
+    } else {
+      stop("AddAdj: Unsupported adjacency  type \"", type, "\".")
+    }
+  }else{## Compute the Adj for multivariate coordinates
+    
+    calAdjd <- function(coord.mat, k = 6) {
+      n <- nrow(coord.mat)
+      nn.idx <- RANN::nn2(data = coord.mat, k = k + 1)$nn.idx
+      j <- rep(1:n, each = k + 1)
+      i <- as.vector(t(nn.idx))
+      Adj <- Matrix::sparseMatrix(i = i, j = j, x = 1, dims = c(n, n))
+      diag(Adj) <- 0
+      return(Adj)
+    }
+    Adj <- calAdjd(pos, k=neighbors)
+  }
+  
+  return(Adj)
+}
+
+FAST_s <- function (X, Adj_sp, q = 15, fit.model='gaussian', features = NULL, ...){
+  require(ProFAST)
+  require(Matrix)
+  if (is.null(features)) {
+    features <- row.names(X)
+  }
+  else {
+    features <- intersect(features, row.names(X))
+  }
+  reslist <- FAST_run(XList = list(Matrix::t(X[features, ])), 
+                      AdjList = list(Adj_sp), q = q, fit.model = fit.model, 
+                      ...)
+  ce_cell <- reslist$hV[[1]]
+  row.names(ce_cell) <- colnames(X)
+  return(ce_cell)
+}
+
+#' Fit FAST model for single-section SRT data
+#' @description  Fit FAST model for single-section SRT data.
+#' @param seu a Seurat object.
+#' @param Adj_sp a sparse matrix, specify the adjacency matrix among spots.
+#' @param q an optional integer, specify the number of low-dimensional embeddings to extract in FAST. Larger q means more information extracted.
+#' @param fit.model an optional string, specify the version of FAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as possion model.
+#' @param verbose a logical value, whether output the information in iteration.
+#' @param slot  an optional string, specify the slot in Seurat object as the input of FAST model, default as `data`.
+#' @param assay an optional string, specify the assay in Seurat object, default as `NULL` that means the default assay in Seurat object.
+#' @param reduction.name an optional string, specify the reduction name for the fast embedding, default as `fast`. 
+#' @param ... other arguments passed to \code{\link{Fast_run}}.
+#' @export
+#' @return return a list including the parameters set in the arguments.
+#' @importFrom Seurat DefaultAssay FindVariableFeatures CreateDimReducObject
+#' @seealso \code{\link{Fast_run}}
+#' 
+#'
+#'
+FAST_single <- function (seu, Adj_sp, q = 15, fit.model=c('poisson', 'gaussian'), 
+                         slot = "data", assay = NULL, reduction.name = "fast", 
+                         verbose=TRUE,...){
+  
+  
+  
+  fit.model <- match.arg(fit.model)
+  
+  if (is.null(assay)) 
+    assay <- DefaultAssay(seu)
+  X_all <- as.matrix(GetAssayData(object = seu, slot = slot, 
+                                  assay = assay))
+  # Adj_sp <- AddAdj(pos=as.matrix(seu@meta.data[,coords]), platform=platform)
+  if (length(seu@assays[[assay]]@var.features) == 0) {
+    seu <- FindVariableFeatures(seu, nfeatures = min(nfeatures, 
+                                                     nrow(seu)), assay = assay)
+  }
+  var.features <- seu@assays[[assay]]@var.features
+  if(verbose){
+    if(fit.model=="poisson"){
+      message( "******","Run the Poisson version of FAST...")
+    }else if(fit.model== "gaussian"){
+      message( "******","Run the Gaussian version of FAST...")
+    }else{
+      stop("FAST_single: Check the argument: fit.model! It is not supported for this fit.model!")
+    }
+  }
+  tstart <- Sys.time()
+  cellsCoordinates <- FAST_s(X = X_all, Adj_sp = Adj_sp, q = q, 
+                             features = var.features, ...)
+  colnames(cellsCoordinates) <- paste0(reduction.name, 1:q)
+  .logDiffTime(sprintf(paste0("%s Finish FAST"), "*****"), t1 = tstart, verbose = verbose)
+  seu@reductions[[reduction.name]] <- CreateDimReducObject(embeddings = cellsCoordinates[colnames(seu), ],
+                                                           key = paste0(gsub("_","", reduction.name), "_"), assay = assay)
+  return(seu)
+}
+
+
+
 # Design high-level function using PRECAST objects -------------------------
 #' Set parameters for FAST model
 #' @description  Prepare parameters setup for FAST model fitting.
@@ -281,7 +418,7 @@ get_r2_mcfadden <- function(embeds, y){
 #' @param verbose a logical value, whether output the information in iteration.
 #' @param seed a postive integer, the random seed to be set in initialization.
 #' @export
-#' @return return a list including the parameters set in the arguments.
+#' @return return a Seurat object with new reduction  (named reduction.name) added to the `reductions` slot.
 #' @examples
 #' model_set_FAST(maxIter = 30, epsLogLik = 1e-5,
 #'   error_heter=TRUE, Psi_diag=FALSE, verbose=TRUE, seed=2023)
@@ -861,7 +998,7 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-`
 #' @importFrom PRECAST Add_embed
 #' @import gtools
-#' @useDynLib FAST, .registration = TRUE
+#' @useDynLib ProFAST, .registration = TRUE
 #'
 IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "HarmonyLouvain"), seuList_raw=NULL, 
                              covariates_use=NULL, Tm=NULL, subsample_rate= 1, verbose=TRUE){

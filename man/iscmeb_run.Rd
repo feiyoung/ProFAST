@@ -22,7 +22,7 @@ iscmeb_run(
 \arguments{
 \item{VList}{a M-length list of embeddings. The i-th element is a ni * q matrtix, where ni is the number of spots of sample i, and q is the number of embeddings. We provide this interface for those users who would like to define the embeddings by themselves.}
 
-\item{AdjList}{an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in ProFAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.}
+\item{AdjList}{an M-length list of sparse matrices with class \code{dgCMatrix}, specify the adjacency matrix used for intrisic CAR model in FAST. We provide this interface for those users who would like to define the adjacency matrix by themselves.}
 
 \item{K}{an integer, specify the number of clusters.}
 
@@ -48,5 +48,5 @@ iscmeb_run(
 returns a iSCMEBResObj object which contains all model results.
 }
 \description{
-Integrate multiple SRT data based on the PRECASTObj by ProFAST and iSC-MEB model fitting.
+Integrate multiple SRT data based on the PRECASTObj by FAST and iSC-MEB model fitting.
 }
