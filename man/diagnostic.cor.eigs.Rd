@@ -11,13 +11,12 @@ diagnostic.cor.eigs(object, ...)
 \method{diagnostic.cor.eigs}{default}(
   object,
   q_max = 50,
-  dir_name = "diagnostic_PCs",
   plot = TRUE,
-  save_eigen = TRUE,
   n.sims = 10,
   parallel = TRUE,
   ncores = 10,
-  seed = 1
+  seed = 1,
+  ...
 )
 
 \method{diagnostic.cor.eigs}{Seurat}(
@@ -31,17 +30,13 @@ diagnostic.cor.eigs(object, ...)
 )
 }
 \arguments{
-\item{object}{a Seurat object.}
+\item{object}{A Seurat or matrix object}
 
 \item{...}{Other arguments passed to \code{\link{diagnostic.cor.eigs.default}}.}
 
-\item{q_max}{an optional integer, the upper bound of low dimensional embedding. Default is 50.}
-
-\item{dir_name}{a folder to store the results when necessary.}
+\item{q_max}{the upper bound of low dimensional embedding. Default is 50.}
 
 \item{plot}{a indicator of whether plot eigen values.}
-
-\item{save_eigen}{a indicator of whether save eigen values.}
 
 \item{n.sims}{number of simulaton times. Default is 10.}
 
@@ -49,7 +44,7 @@ diagnostic.cor.eigs(object, ...)
 
 \item{ncores}{the number of cores used in parallel analysis. Default is 10.}
 
-\item{seed}{an optional integer, the random seed used. Default is 1.}
+\item{seed}{a postive integer, specify the random seed for reproducibility}
 
 \item{assay}{an optional string, specify the name of assay in the Seurat object to be used.}
 
@@ -58,11 +53,13 @@ diagnostic.cor.eigs(object, ...)
 \item{nfeatures}{an optional integer, specify the number of features to select as top variable features. Default is 2000.}
 }
 \value{
-A data.frame with attribute q_est, which is the estimated dimension of low dimensional embedding. In addition, this data.frame containing the following components:
+A data.frame with attribute `q_est` and `plot`, which is the estimated dimension of low dimensional embedding. In addition, this data.frame containing the following components:
 \itemize{
   \item q - The index of eigen values.
   \item eig_value - The eigen values on observed data.
   \item eig_sim - The mean value of eigen values of n.sims simulated data.
+  \item q_est - The selected dimension in attr(obj, 'q_est').
+  \item plot - The plot saved in attr(obj, 'plot').
 }
 }
 \description{
@@ -74,8 +71,6 @@ p <- 50
 d <- 15
 object <- matrix(rnorm(n*d), n, d) \%*\% matrix(rnorm(d*p), d, p)
 diagnostic.cor.eigs(object, n.sims=2)
-data(pbmc3k_subset)
-diagnostic.cor.eigs(pbmc3k_subset)
 }
 \references{
 1. Franklin, S. B., Gibson, D. J., Robertson, P. A., Pohlmann, J. T., & Fralish, J. S. (1995). Parallel analysis: a method for determining significant principal components. Journal of Vegetation Science, 6(1), 99-106.

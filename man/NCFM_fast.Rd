@@ -42,6 +42,7 @@ Run cell-feature coembedding for SRT data based on FAST model.
 data(CosMx_subset)
 pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 Adj_sp <- AddAdj(pos)
-CosMx_subset <- NCFM_fast(CosMx_subset, Adj_sp = Adj_sp)
+# Here, we set maxIter = 3 for fast computation and demonstration.
+CosMx_subset <- NCFM_fast(CosMx_subset, Adj_sp = Adj_sp, maxIter=3)
 
 }

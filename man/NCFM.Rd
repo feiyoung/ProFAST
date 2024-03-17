@@ -6,7 +6,7 @@
 \usage{
 NCFM(
   object,
-  assay = "RNA",
+  assay = NULL,
   slot = "data",
   nfeatures = 2000,
   q = 10,
@@ -18,7 +18,7 @@ NCFM(
 \arguments{
 \item{object}{a Seurat object.}
 
-\item{assay}{an optional string, specify the name of assay in the Seurat object to be used.}
+\item{assay}{an optional string, specify the name of assay in the Seurat object to be used, `NULL` means default assay in seu.}
 
 \item{slot}{an optional string, specify the name of slot.}
 

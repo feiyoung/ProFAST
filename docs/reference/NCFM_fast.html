@@ -32,7 +32,7 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/CosMx.html">NSCLC CosMx data coembedding using NCFM</a>
+      <a href="../articles/CosMx.html">CoFAST: NSCLC CosMx data coembedding</a>
     </li>
     <li>
       <a href="../articles/FASTdlpfc.html">FAST: single DLPFC section</a>
@@ -44,7 +44,7 @@
       <a href="../articles/FASTsimu.html">FAST: simulation</a>
     </li>
     <li>
-      <a href="../articles/pbmc3k.html">PBMC scRNA-seq data coembedding using NCFM</a>
+      <a href="../articles/pbmc3k.html">CoFAST: PBMC scRNA-seq data coembedding</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -131,48 +131,22 @@
 <span class="r-in"><span class="va">Adj_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="AddAdj.html">AddAdj</a></span><span class="op">(</span><span class="va">pos</span><span class="op">)</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> The spatial cooridnates are 2 dimensions</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Find the adjacency matrix by bisection method...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current radius is 83.6</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current radius is 70.16</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Median of neighborhoods is 0</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current radius is 83.6</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Median of neighborhoods is 4</span>
-<span class="r-in"><span class="va">CosMx_subset</span> <span class="op">&lt;-</span> <span class="fu">NCFM_fast</span><span class="op">(</span><span class="va">CosMx_subset</span>, Adj_sp <span class="op">=</span> <span class="va">Adj_sp</span><span class="op">)</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current radius is 104.73</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Median of neighborhoods is 2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current radius is 104.73</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Median of neighborhoods is 6</span>
+<span class="r-in"><span class="co"># Here, we set maxIter = 3 for fast computation and demonstration.</span></span>
+<span class="r-in"><span class="va">CosMx_subset</span> <span class="op">&lt;-</span> <span class="fu">NCFM_fast</span><span class="op">(</span><span class="va">CosMx_subset</span>, Adj_sp <span class="op">=</span> <span class="va">Adj_sp</span>, maxIter<span class="op">=</span><span class="fl">3</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Finish variable intialization </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 2, loglik= -1408913.095802, dloglik=0.999344 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 2, loglik= -1408612.960642, dloglik=0.999344 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 3, loglik= -1404601.463459, dloglik=0.003060 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 4, loglik= -1403895.616106, dloglik=0.000503 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 5, loglik= -1403593.404247, dloglik=0.000215 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 6, loglik= -1403457.787091, dloglik=0.000097 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 7, loglik= -1403377.282774, dloglik=0.000057 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 8, loglik= -1403327.089508, dloglik=0.000036 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 9, loglik= -1403292.356998, dloglik=0.000025 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 10, loglik= -1403267.450088, dloglik=0.000018 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 11, loglik= -1403248.819937, dloglik=0.000013 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 12, loglik= -1403234.503752, dloglik=0.000010 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Satrt ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Finish ICM and E-step! </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 13, loglik= -1403223.181256, dloglik=0.000008 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> iter = 3, loglik= -1404516.571078, dloglik=0.002908 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 2024-03-17 18:26:40 : ***** Finish CoFAST, 0.04 mins elapsed.</span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>

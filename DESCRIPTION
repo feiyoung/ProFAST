@@ -7,7 +7,7 @@ Authors@R:
     c(person(given = "Wei",
              family = "Liu",
              role = c("aut", "cre"),
-             email = "wei.liu@duke-nus.edu.sg"),
+             email = "liuweideng@gmail.com"),
       person(given = "Xiao",
              family = "Zhang",
              role = c("aut")),
@@ -15,7 +15,7 @@ Authors@R:
              family = "Liu",
              role = "aut"))
 Author: Wei Liu [aut, cre], Xiao Zhang [aut], Jin Liu [aut]
-Maintainer: Wei Liu <wei.liu@duke-nus.edu.sg>
+Maintainer: Wei Liu <liuweideng@gmail.com>
 Description: Probabilistic factor analysis for spatially-aware dimension reduction across multi-section spatial transcriptomics data with millions of spatial locations.
     More details can be referred to Wei Liu, et al. (2023) <doi:10.1101/2023.07.11.548486>.
 License: GPL-3
@@ -24,14 +24,9 @@ Depends:
     gtools
 Imports: 
     Rcpp (>= 1.0.10),
-    RANN,
     furrr,
     future,
-    dplyr,
-    ggrepel,
     ggplot2,
-    grDevices,
-    scater,
     AnnotationDbi,
     DR.SC,
     Matrix,
@@ -44,9 +39,7 @@ Imports:
     org.Mm.eg.db,
     Seurat,
     parallel,
-    performance,
     harmony,
-    nnet,
     methods,
     stats,
     utils
@@ -55,7 +48,13 @@ URL: https://github.com/feiyoung/ProFAST
 BugReports: https://github.com/feiyoung/ProFAST/issues
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    performance,
+    nnet,
+    scater,
+    ggrepel,
+    RANN,
+    grDevices
 LinkingTo: 
     Rcpp,
     RcppArmadillo

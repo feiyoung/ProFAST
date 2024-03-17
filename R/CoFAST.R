@@ -72,15 +72,6 @@ compute.AdjList <- function(
 }
 
 
-#' @param object a Seurat or matrix object
-#'
-#' @rdname diagnostic.cor.eigs
-#' @export diagnostic.cor.eigs
-#'
-diagnostic.cor.eigs <- function(object, ...) {
-  UseMethod(generic = "diagnostic.cor.eigs", object = object)
-}
-
 #' Determine the dimension of low dimensional embedding
 #'
 #' @useDynLib ProFAST, .registration = TRUE
@@ -91,29 +82,38 @@ diagnostic.cor.eigs <- function(object, ...) {
 #' 
 #' 2. Crawford, A. V., Green, S. B., Levy, R., Lo, W. J., Scott, L., Svetina, D., & Thompson, M. S. (2010). Evaluation of parallel analysis methods for determining the number of factors.Educational and Psychological Measurement, 70(6), 885-901.
 #'
+#' @param object A Seurat or matrix object
+#' @param ... Arguments passed to other methods
+#' @rdname diagnostic.cor.eigs
+#' @export diagnostic.cor.eigs
+#'
+#' @return A data.frame with attribute `q_est` and `plot`, which is the estimated dimension of low dimensional embedding. In addition, this data.frame containing the following components:
+#' \itemize{
+#'   \item q - The index of eigen values.
+#'   \item eig_value - The eigen values on observed data.
+#'   \item eig_sim - The mean value of eigen values of n.sims simulated data.
+#'   \item q_est - The selected dimension in attr(obj, 'q_est').
+#'   \item plot - The plot saved in attr(obj, 'plot').
+#' }
+#'
+diagnostic.cor.eigs <- function(object, ...) {  
+  UseMethod("diagnostic.cor.eigs", object = object)  
+}
+
+#' Determine the dimension of low dimensional embedding
 #' @importFrom irlba irlba
-#' @importFrom dplyr `%>%`
-#' @importFrom progress progress_bar
 #' @importFrom furrr future_map
 #' @importFrom future plan
+#' @importFrom stats rnorm 
 #' @import ggplot2
 #'
-#' @param object a cell by gene expression matrix.
 #' @param q_max the upper bound of low dimensional embedding. Default is 50.
-#' @param dir_name a folder to store the results when necessary.
 #' @param plot a indicator of whether plot eigen values.
-#' @param save_eigen a indicator of whether save eigen values.
 #' @param n.sims number of simulaton times. Default is 10.
 #' @param parallel a indicator of whether use parallel analysis.
 #' @param ncores the number of cores used in parallel analysis. Default is 10.
 #' @param seed a postive integer, specify the random seed for reproducibility
 #'
-#' @return A data.frame with attribute q_est, which is the estimated dimension of low dimensional embedding. In addition, this data.frame containing the following components:
-#' \itemize{
-#'   \item q - The index of eigen values.
-#'   \item eig_value - The eigen values on observed data.
-#'   \item eig_sim - The mean value of eigen values of n.sims simulated data.
-#' }
 #'
 #' @rdname diagnostic.cor.eigs
 #'
@@ -126,8 +126,8 @@ diagnostic.cor.eigs <- function(object, ...) {
 #' object <- matrix(rnorm(n*d), n, d) %*% matrix(rnorm(d*p), d, p)
 #' diagnostic.cor.eigs(object, n.sims=2)
 diagnostic.cor.eigs.default <- function(
-  object,  q_max = 50, dir_name = 'diagnostic_PCs', plot = TRUE, save_eigen = TRUE,
-  n.sims = 10, parallel = TRUE, ncores = 10, seed=1) {
+  object,  q_max = 50,  plot = TRUE,
+  n.sims = 10, parallel = TRUE, ncores = 10, seed=1, ...) {
   if (!is.numeric(q_max)) {
     stop("q_max should be a numeric!")
   }
@@ -144,12 +144,12 @@ diagnostic.cor.eigs.default <- function(
   svdX <- irlba::irlba(A = Y / sqrt(n), nv = q_max)
 
   dvec <- svdX$d^2 ## is the eigenvalues of correlation matrix
-  if ((!dir.exists(dir_name)) && (any(c(plot, save_eigen)))) {
-    dir.create(dir_name)
-  }
-  if (save_eigen) {
-    save(dvec, file = paste0("./", dir_name, '/cor_eigs_values.rds'))
-  }
+  # if ((!dir.exists(dir_name)) && (any(c(plot, save_eigen)))) {
+  #   dir.create(dir_name)
+  # }
+  # if (save_eigen) {
+  #   save(dvec, file = paste0("./", dir_name, '/cor_eigs_values.rds'))
+  # }
 
   ### simulate data
   corr_fun <- function(i, n, p) {
@@ -162,28 +162,27 @@ diagnostic.cor.eigs.default <- function(
     #library(furrr)
     #library(future)
     future::plan('multicore', workers = ncores)
-    pb <- progress::progress_bar$new(format = "[:bar] :percent ETA: :eta")
-    eig.mat.sim <- (1:n.sims) %>%
-      furrr::future_map(corr_fun, n = n, p = p, .progress = TRUE, .options = furrr::furrr_options(seed = seed))
+    eig.mat.sim <- furrr::future_map(1:n.sims,corr_fun, n = n, p = p, .progress = TRUE, .options = furrr::furrr_options(seed = seed))
     eig.mat.sim <- Reduce(cbind, eig.mat.sim)
   } else {
     eig.mat.sim <- pbapply::pbsapply(1:n.sims, corr_fun, n = n, p = p)
   }
   dat <- data.frame(
-    q = seq_along(dvec),
-    eig_value = dvec,
-    eig_sim = rowMeans(eig.mat.sim))
+    'q' = seq_along(dvec),
+    'eig_value' = dvec,
+    'eig_sim' = rowMeans(eig.mat.sim))
   q_s <- which(dat$eig_sim > dat$eig_value)[1] - 1
   if (plot) {
-    p1 <- ggplot(data = dat, aes(x = q, y = eig_value)) +
+    p1 <- ggplot(data = dat, aes_string(x = 'q', y = 'eig_value')) +
       geom_line(linewidth = 1) +
       geom_point(size = 1.5) +
-      geom_line(aes(x = q, y = eig_sim), color = "red")+
+      geom_line(aes_string(x = 'q', y = 'eig_sim'), color = "red")+
       geom_vline(xintercept = q_s) +
       theme_classic(base_size = 16)
     print(p1)
-    write_fig(
-      p1, filename = "parallel_analysis_plot", dir_name = dir_name)
+    attr(dat, "plot") <- p1
+    # write_fig(
+    #   p1, filename = "parallel_analysis_plot", dir_name = dir_name)
   }
   if (is.na(q_s)) {
     q_s <- q_max
@@ -197,25 +196,18 @@ diagnostic.cor.eigs.default <- function(
 
 
 
-#' @param object a Seurat object.
 #' @param assay an optional string, specify the name of assay in the Seurat object to be used.
 #' @param slot an optional string, specify the name of slot.
 #' @param nfeatures an optional integer, specify the number of features to select as top variable features. Default is 2000.
-#' @param q_max an optional integer, the upper bound of low dimensional embedding. Default is 50.
-#' @param seed an optional integer, the random seed used. Default is 1.
 #' @param ... Other arguments passed to \code{\link{diagnostic.cor.eigs.default}}.
 #'
 #' @method diagnostic.cor.eigs Seurat
 #' @rdname diagnostic.cor.eigs
-#'
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Matrix t
 #'
 #' @export
 #'
-#' @examples
-#' data(pbmc3k_subset)
-#' diagnostic.cor.eigs(pbmc3k_subset)
 diagnostic.cor.eigs.Seurat <- function(
   object, assay = NULL, slot = "data", nfeatures = 2000, q_max = 50,
   seed = 1,...) {
@@ -245,7 +237,7 @@ diagnostic.cor.eigs.Seurat <- function(
 #' Cell-feature coembedding for scRNA-seq data
 #' @description Cell-feature coembedding for scRNA-seq data based on FAST model.
 #' @param object a Seurat object.
-#' @param assay an optional string, specify the name of assay in the Seurat object to be used.
+#' @param assay an optional string, specify the name of assay in the Seurat object to be used, `NULL` means default assay in seu.
 #' @param slot an optional string, specify the name of slot.
 #' @param nfeatures an optional integer, specify the number of features to select as top variable features. Default is 2000.
 #' @param q an optional positive integer, specify the dimension of low dimensional embeddings to compute and store. Default is 10.
@@ -255,9 +247,7 @@ diagnostic.cor.eigs.Seurat <- function(
 #'
 #' @rdname NCFM
 #'
-#' @import tictoc
-#' @import MatrixGenerics
-#' @importFrom Seurat GetAssayData CreateDimReducObject FindVariableFeatures
+#' @importFrom Seurat DefaultAssay GetAssayData CreateDimReducObject FindVariableFeatures
 #'
 #' @export
 #'
@@ -265,24 +255,33 @@ diagnostic.cor.eigs.Seurat <- function(
 #' data(pbmc3k_subset)
 #' pbmc3k_subset <- NCFM(pbmc3k_subset)
 NCFM <- function(
-  object, assay = "RNA", slot = "data", nfeatures = 2000, q = 10,
+  object, assay = NULL, slot = "data", nfeatures = 2000, q = 10,
   reduction.name = "ncfm", weighted = FALSE, var.features = NULL) {
+  
+  if (is.null(assay)) {
+    assay <- Seurat::DefaultAssay(object)
+  }
+  
   X_all <- as.matrix(Seurat::GetAssayData(
     object = object, slot = slot, assay = assay))
   if (is.null(var.features)) {
     if (length(object@assays[[assay]]@var.features) == 0) {
-      object <- Seurat::FindVariableFeatures(
-        object, nfeatures = min(nfeatures, nrow(object)), assay = assay)
+      stop("NCFM: please find the variable features using Seurat::FindVariableFeatures or DR.SC::FindSVGs before running this function!")
     }
     var.features <- object@assays[[assay]]@var.features
   } else {
     var.features <- intersect(
-      var.features, rownames(object@assays[[assay]]))
+      var.features, rownames(X_all)) # slot is scale.data, restrict the var.features to be the features in scale.data
   }
-
+  if(slot != 'data'){
+    X_data <- as.matrix(Seurat::GetAssayData(
+      object = object, slot = 'data', assay = assay))
+  }else{
+    X_data <- X_all
+  }
   res <- Factor_nc(
-    X = X_all, q = q, reduction.name = reduction.name, weighted = weighted,
-    features = var.features)
+    X_slot = X_all[var.features,], X_data=X_data,  q = q, reduction.name = reduction.name, weighted = weighted,
+    features = NULL)
   cellsCoordinates <- res$cellsCoordinates
   featuresCoordinates <- res$featuresCoordinates
 
@@ -298,35 +297,35 @@ NCFM <- function(
 #' @importFrom Matrix t
 #' @importFrom irlba irlba
 Factor_nc <- function(
-  X, q = 10, reduction.name = "Fac", weighted = FALSE, features = NULL) {
+  X_slot, X_data, q = 10, reduction.name = "Fac", weighted = FALSE, features = NULL) {
   if (q <= 1) {
     stop("q must be greater than or equal to 2!")
   }
   if (is.null(features)) {
-    features <- row.names(X)
+    features <- row.names(X_slot)
   } else {
-    features <- intersect(features, row.names(X))
+    features <- intersect(features, row.names(X_slot))
   }
-  X <- as.matrix(X)
-
+  X_slot <- as.matrix(X_slot)
+  tstart <- Sys.time()
   px <- length(features)
   if (weighted) {
     fit <- irlba::irlba(
-      A = Matrix::t(X[features, ]), nu = q, nv = 1, work = sqrt(px * q))
+      A = Matrix::t(X_slot[features, ]), nu = q, nv = 1, work = sqrt(px * q))
     ce_cell <- fit$u %*% diag(fit$d[1:q])
   } else {
     ce_cell <- irlba::irlba(
-      A = Matrix::t(X[features, ]), nu = q, nv = 1, work = sqrt(px * q))$u
+      A = Matrix::t(X_slot[features, ]), nu = q, nv = 1, work = sqrt(px * q))$u
   }
 
-  ce_gene <- gene_embed_cpp(X, ce_cell)
+  ce_gene <- gene_embed_cpp(X_data, ce_cell)
 
   component <- paste0(reduction.name, "_", seq_len(ncol(ce_cell)))
   colnames(ce_cell) <- component
-  row.names(ce_cell) <- colnames(X)
+  row.names(ce_cell) <- colnames(X_data)
   colnames(ce_gene) <- component
-  row.names(ce_gene) <- row.names(X)
-
+  row.names(ce_gene) <- row.names(X_data)
+  .logDiffTime(sprintf(paste0("%s Finish CoFAST"), "*****"), t1 = tstart, verbose=TRUE)
   output <- list(
     cellsCoordinates = ce_cell,
     featuresCoordinates = ce_gene
@@ -355,7 +354,8 @@ Factor_nc <- function(
 #' data(CosMx_subset)
 #' pos <- as.matrix(CosMx_subset@meta.data[,c("x", "y")])
 #' Adj_sp <- AddAdj(pos)
-#' CosMx_subset <- NCFM_fast(CosMx_subset, Adj_sp = Adj_sp)
+#' # Here, we set maxIter = 3 for fast computation and demonstration.
+#' CosMx_subset <- NCFM_fast(CosMx_subset, Adj_sp = Adj_sp, maxIter=3)
 #' 
 NCFM_fast <- function(
   object, Adj_sp, assay = NULL, slot = "data", nfeatures = 2000, q = 10,
@@ -370,21 +370,26 @@ NCFM_fast <- function(
     object = object, slot = slot, assay = assay)) # as.matrix
   if (is.null(var.features)) {
     if (length(object@assays[[assay]]@var.features) == 0) {
-      object <- FindVariableFeatures(
-        object, nfeatures = min(nfeatures, nrow(object)), assay = assay)
+      stop("NCFM: please find the variable features using Seurat::FindVariableFeatures or DR.SC::FindSVGs before running this function!")
     }
     var.features <- object@assays[[assay]]@var.features
   } else {
     var.features <- intersect(
-      var.features, rownames(object@assays[[assay]]))
+      var.features, rownames(X_all))
+  }
+  if(slot != 'data'){
+    X_data <- as.matrix(Seurat::GetAssayData(
+      object = object, slot = 'data', assay = assay)) ## ensure X_data always includes all features in seu.
+  }else{
+    X_data <- X_all 
   }
   
   res <- FAST_single_coembed(
-    X = X_all, Adj_sp = Adj_sp, q = q, var.features = var.features, ...)
+    X_slot = X_all[var.features,], X_data = X_data, Adj_sp = Adj_sp, q = q, var.features = NULL, ...)
   cellsCoordinates <- res$cellsCoordinates
   featuresCoordinates <- res$featuresCoordinates
   colnames(cellsCoordinates) <- paste0("fast", 1:q)
-  .logDiffTime(sprintf(paste0("%s Finish CoFAST"), "*****"), t1 = tstart, verbose = verbose)
+  .logDiffTime(sprintf(paste0("%s Finish CoFAST"), "*****"), t1 = tstart, verbose=TRUE)
   feature_names <- intersect(row.names(featuresCoordinates), rownames(object))
   object@reductions[[reduction.name]] <- Seurat::CreateDimReducObject(
     embeddings = cellsCoordinates[colnames(object), ],
@@ -396,23 +401,23 @@ NCFM_fast <- function(
 
 
 FAST_single_coembed <- function(
-  X, Adj_sp, q = 15, var.features = NULL, ...) {
+  X_slot, X_data, Adj_sp, q = 15, var.features = NULL, ...) {
   if (is.null(var.features)) {
-    var.features <- row.names(X)
+    var.features <- row.names(X_slot)
   } else {
-    var.features <- intersect(var.features, row.names(X))
+    var.features <- intersect(var.features, row.names(X_slot))
   }
 
   reslist <- FAST_run(
-    XList = list(Matrix::t(X[var.features, ])), AdjList = list(Adj_sp),
+    XList = list(Matrix::t(X_slot[var.features, ])), AdjList = list(Adj_sp),
     q = q, fit.model = "gaussian", ...)
   ce_cell <- reslist$hV[[1]]
-  row.names(ce_cell) <- colnames(X)
+  row.names(ce_cell) <- colnames(X_slot)
   rm(reslist)
 
-  ce_gene <- gene_embed_cpp(as.matrix(X), ce_cell)
+  ce_gene <- gene_embed_cpp(as.matrix(X_data), ce_cell)
 
-  row.names(ce_gene) <- row.names(X)
+  row.names(ce_gene) <- row.names(X_data)
 
   output <- list(
     cellsCoordinates = ce_cell,
@@ -433,7 +438,7 @@ pdistance.matrix <- function (Ar, Br, eta = 1e-10) {
 #'Calculate the cell-feature distance matrix
 #' @description  Calculate the cell-feature distance matrix based on coembeddings.
 #' @param object a Seurat object.
-#' @param reduction.name a opstional string, dimensional reduction name, `fast` by default.
+#' @param reduction a opstional string, dimensional reduction name, `fast` by default.
 #' @param assay.name a opstional string, specify the new generated assay name, `distce` by default.
 #' @param eta an optional postive real, a quantity to avoid numerical errors. 1e-10 by default.
 #'
@@ -480,6 +485,7 @@ pdistance <- function(
 #' @references None
 #' @export
 #' @importFrom  pbapply pblapply
+#' @importFrom utils head
 #' @examples
 #' library(Seurat)
 #' data(pbmc3k_subset)
@@ -517,7 +523,7 @@ get.top.signature.dat <- function(df.list, ntop=5, expr.prop.cutoff=0.1) {
 #' @seealso None
 #' @references None
 #' @export
-#' @importFrom  Seurat DefaultAssay
+#' @importFrom  Seurat DefaultAssay Idents
 #' @importFrom  pbapply pblapply
 #' @examples
 #' library(Seurat)
@@ -645,7 +651,6 @@ write_fig <- function(
 #' @references None
 #' @export
 #' @importFrom  Seurat Loadings Embeddings CreateDimReducObject
-#' @importFrom  scater calculateUMAP
 #'
 #' @examples
 #' data(pbmc3k_subset)
@@ -660,6 +665,17 @@ write_fig <- function(
 #'
 coembedding_umap <- function(seu, reduction, reduction.name, gene.set = NULL,
                              slot = "data", assay = "RNA", seed = 1) {
+  
+  
+  calculateUMAP <- function(...){
+    if (requireNamespace("scater", quietly = TRUE)) {
+      x <- scater::calculateUMAP(...)
+      return(x)
+    } else {
+      stop("coembedding_umap: scater is not available. Install scater to use this functionality.")
+    } 
+  }
+  
   if (is.null(gene.set)) gene.set <- rownames(seu)
   gene.set <- unique(gene.set)
   if(!inherits(gene.set, "character"))
@@ -667,7 +683,7 @@ coembedding_umap <- function(seu, reduction, reduction.name, gene.set = NULL,
   febd <- Loadings(seu, reduction)[gene.set, ]
   cebd <- Embeddings(seu, reduction)
   set.seed(seed)
-  umap_all <- scater::calculateUMAP(t(rbind(febd, cebd)))
+  umap_all <- calculateUMAP(t(rbind(febd, cebd)))
   colnames(umap_all) <- paste0(gsub("_", "", reduction.name), "_", 1:2)
   n_gene <- length(gene.set)
 
@@ -700,11 +716,8 @@ coembedding_umap <- function(seu, reduction, reduction.name, gene.set = NULL,
 #' @seealso \code{\link{coembedding_umap}}
 #' @references None
 #' @export
-#' @importFrom  dplyr `%>%`
 #' @importFrom  ggplot2 ggplot aes_string geom_point scale_colour_manual scale_shape_manual theme_classic theme guides
-#' @importFrom  ggrepel geom_text_repel
-#' @importFrom  grDevices hcl
-#' @importFrom  Seurat Loadings  Embeddings
+#' @importFrom  Seurat Loadings  Embeddings Idents
 #' @examples
 #' data(pbmc3k_subset)
 #' data(top5_signatures)
@@ -721,7 +734,20 @@ coembed_plot <- function (seu, reduction, gene_txtdata = NULL, cell_label = NULL
   
   gg_color_hue <- function(n) {
     hues = seq(15, 375, length = n + 1)
-    hcl(h = hues, l = 65, c = 100)[1:n]
+    if (requireNamespace("grDevices", quietly = TRUE)) {
+      x <- grDevices::hcl(h = hues, l = 65, c = 100)[1:n]
+      return(x)
+    } else {
+      stop("coembed_plot: grDevices is not available. Install grDevices to use plotting functionalities.")
+    } 
+  }
+  geom_text_repel_here <- function(...){
+    if (requireNamespace("ggrepel", quietly = TRUE)) {
+      x <- ggrepel::geom_text_repel(...)
+      return(x)
+    } else {
+      stop("coembed_plot: ggrepel is not available. Install ggrepel to use plotting functionalities.")
+    } 
   }
   if (is.null(gene_txtdata)) {
     umap_febd <- Loadings(seu, reduction)[, dims]
@@ -740,9 +766,9 @@ coembed_plot <- function (seu, reduction, gene_txtdata = NULL, cell_label = NULL
   umap_co_ebd$cgtype <- cgtype
 
   if (is.null(cell_label)) {
-    y <- Idents(seu) %>% as.character()
+    y <- as.character(Idents(seu))
   }else {
-    y <- seu@meta.data[, cell_label] %>% as.character()
+    y <- as.character(seu@meta.data[, cell_label])
   }
   if (is.null(cols)) {
     col_clusters <- gg_color_hue(length(unique(y)) +
@@ -773,16 +799,15 @@ coembed_plot <- function (seu, reduction, gene_txtdata = NULL, cell_label = NULL
                      cgtype = rep("gene", nrow(umap_febd)),
                      cluster = rep("gene", nrow(umap_febd)), color = col_clusters[gene_txtdata$label])
   colnames(df11)[1:2] <-  paste0('xy_name', dims)
-  # p12 <- p1 + geom_point(data = df11, mapping =aes_string(x=colnames(df11)[1],
-  #                                                         y=colnames(df11)[2],
-  #                                                         color = 'cluster'), shape = 4, size=pt_size+1.5) +
-  p12 <- p1 + geom_text_repel(data = df11, aes_string(x=colnames(df11)[1],
-                                                      y=colnames(df11)[2],
-                                                      label = 'label'), size = pt_text_size,
-                              color = df11$color, max.overlaps = 50) +
-    theme(legend.key.size = unit(legend.key.size, "lines"))+
-    guides(shape = guide_legend(override.aes = list(size = legend.point.size)),
-           color= guide_legend(override.aes = list(size = legend.point.size)))
+  p12 <- p1 + geom_text_repel_here(data = df11, aes_string(x=colnames(df11)[1],
+                                                                 y=colnames(df11)[2],
+                                                                 label = 'label'), size = pt_text_size,
+                                         color = df11$color, max.overlaps = 50) +
+      theme(legend.key.size = unit(legend.key.size, "lines"))+
+      guides(shape = guide_legend(override.aes = list(size = legend.point.size)),
+             color= guide_legend(override.aes = list(size = legend.point.size)))
+  
+  
   return(p12)
 }
 

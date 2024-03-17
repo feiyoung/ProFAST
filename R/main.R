@@ -254,17 +254,32 @@ FAST_run <- function(XList, AdjList, q = 15,  fit.model = c("gaussian", "poisson
 #' @details None
 #' @references McFadden, D. (1987). Regression-based specification tests for the multinomial logit model. Journal of econometrics, 34(1-2), 63-82.
 #' @export
-#' @importFrom  nnet multinom
-#' @importFrom performance r2_mcfadden
 #'
 get_r2_mcfadden <- function(embeds, y){
   # library(nnet)
   # library(performance)
+  r2_mcfadden <- function(...){
+    if (requireNamespace("performance", quietly = TRUE)) {
+      x <- performance::r2_mcfadden(...)
+      return(x)
+    } else {
+      stop("get_r2_mcfadden: performance is not available. Install performance to use this functionality.")
+    } 
+  }
+  
+  multinom <- function(...){
+    if (requireNamespace("nnet", quietly = TRUE)) {
+      x <- nnet::multinom(...)
+      return(x)
+    } else {
+      stop("get_r2_mcfadden: nnet is not available. Install nnet to use this functionality.")
+    } 
+  }
   dat_r2_mac <- NULL
   
   # data('dat_r2_mac', package = "FAST")
   y <- as.numeric(as.factor(y))
-  model1 <- nnet::multinom(y~embeds)
+  model1 <- multinom(y~embeds)
   R2 <- r2_mcfadden(model1)
   return(R2$R2_adjusted)
 }
@@ -288,7 +303,6 @@ get_r2_mcfadden <- function(embeds, y){
 #' @seealso None
 #' @references None
 #' @export
-#' @importFrom  RANN nn2
 #' @importFrom DR.SC getAdj_auto
 #' @importFrom PRECAST getAdj_reg getAdj_fixedNumber
 #' @importFrom Matrix sparseMatrix
@@ -319,9 +333,19 @@ AddAdj <- function(pos, type="fixed_distance", platform=c("Others","Visium", "ST
     }
   }else{## Compute the Adj for multivariate coordinates
     
+    nn2_here <- function(...) {
+      
+      if (requireNamespace("RANN", quietly = TRUE)) {
+        x <- RANN::nn2(...)
+        return(x)
+      } else {
+        stop("AddAdj: RANN is not available. Install RANN to use plotting functionalities.")
+      } 
+    }
+    
     calAdjd <- function(coord.mat, k = 6) {
       n <- nrow(coord.mat)
-      nn.idx <- RANN::nn2(data = coord.mat, k = k + 1)$nn.idx
+      nn.idx <- nn2_here(data = coord.mat, k = k + 1)$nn.idx
       j <- rep(1:n, each = k + 1)
       i <- as.vector(t(nn.idx))
       Adj <- Matrix::sparseMatrix(i = i, j = j, x = 1, dims = c(n, n))
@@ -335,8 +359,7 @@ AddAdj <- function(pos, type="fixed_distance", platform=c("Others","Visium", "ST
 }
 
 FAST_s <- function (X, Adj_sp, q = 15, fit.model='gaussian', features = NULL, ...){
-  require(ProFAST)
-  require(Matrix)
+  
   if (is.null(features)) {
     features <- row.names(X)
   }
@@ -361,11 +384,11 @@ FAST_s <- function (X, Adj_sp, q = 15, fit.model='gaussian', features = NULL, ..
 #' @param slot  an optional string, specify the slot in Seurat object as the input of FAST model, default as `data`.
 #' @param assay an optional string, specify the assay in Seurat object, default as `NULL` that means the default assay in Seurat object.
 #' @param reduction.name an optional string, specify the reduction name for the fast embedding, default as `fast`. 
-#' @param ... other arguments passed to \code{\link{Fast_run}}.
+#' @param ... other arguments passed to \code{\link{FAST_run}}.
 #' @export
 #' @return return a list including the parameters set in the arguments.
 #' @importFrom Seurat DefaultAssay FindVariableFeatures CreateDimReducObject
-#' @seealso \code{\link{Fast_run}}
+#' @seealso \code{\link{FAST_run}}
 #' 
 #'
 #'
@@ -383,8 +406,7 @@ FAST_single <- function (seu, Adj_sp, q = 15, fit.model=c('poisson', 'gaussian')
                                   assay = assay))
   # Adj_sp <- AddAdj(pos=as.matrix(seu@meta.data[,coords]), platform=platform)
   if (length(seu@assays[[assay]]@var.features) == 0) {
-    seu <- FindVariableFeatures(seu, nfeatures = min(nfeatures, 
-                                                     nrow(seu)), assay = assay)
+    stop("FAST_single: please find the variable features in seu before running this function!")
   }
   var.features <- seu@assays[[assay]]@var.features
   if(verbose){

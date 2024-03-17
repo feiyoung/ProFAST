@@ -33,7 +33,7 @@ FAST_single(
 
 \item{verbose}{a logical value, whether output the information in iteration.}
 
-\item{...}{other arguments passed to \code{\link{Fast_run}}.}
+\item{...}{other arguments passed to \code{\link{FAST_run}}.}
 }
 \value{
 return a list including the parameters set in the arguments.
@@ -42,5 +42,5 @@ return a list including the parameters set in the arguments.
 Fit FAST model for single-section SRT data.
 }
 \seealso{
-\code{\link{Fast_run}}
+\code{\link{FAST_run}}
 }

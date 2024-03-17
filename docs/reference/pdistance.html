@@ -32,7 +32,7 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/CosMx.html">NSCLC CosMx data coembedding using NCFM</a>
+      <a href="../articles/CosMx.html">CoFAST: NSCLC CosMx data coembedding</a>
     </li>
     <li>
       <a href="../articles/FASTdlpfc.html">FAST: single DLPFC section</a>
@@ -44,7 +44,7 @@
       <a href="../articles/FASTsimu.html">FAST: simulation</a>
     </li>
     <li>
-      <a href="../articles/pbmc3k.html">PBMC scRNA-seq data coembedding using NCFM</a>
+      <a href="../articles/pbmc3k.html">CoFAST: PBMC scRNA-seq data coembedding</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -81,16 +81,16 @@
 <dd><p>a Seurat object.</p></dd>
 
 
+<dt>reduction</dt>
+<dd><p>a opstional string, dimensional reduction name, `fast` by default.</p></dd>
+
+
 <dt>assay.name</dt>
 <dd><p>a opstional string, specify the new generated assay name, `distce` by default.</p></dd>
 
 
 <dt>eta</dt>
 <dd><p>an optional postive real, a quantity to avoid numerical errors. 1e-10 by default.</p></dd>
-
-
-<dt>reduction.name</dt>
-<dd><p>a opstional string, dimensional reduction name, `fast` by default.</p></dd>
 
 </dl></div>
     <div id="details">
@@ -103,6 +103,7 @@ distance matrix will be used in the siganture gene identification.</p>
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbmc3k_subset</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">pbmc3k_subset</span> <span class="op">&lt;-</span> <span class="fu"><a href="NCFM.html">NCFM</a></span><span class="op">(</span><span class="va">pbmc3k_subset</span><span class="op">)</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 2024-03-17 18:26:44 : ***** Finish CoFAST, 0.007 mins elapsed.</span>
 <span class="r-in"><span class="va">pbmc3k_subset</span> <span class="op">&lt;-</span> <span class="fu">pdistance</span><span class="op">(</span><span class="va">pbmc3k_subset</span>, <span class="st">"ncfm"</span><span class="op">)</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Calculate co-embedding distance...</span>
 </code></pre></div>
