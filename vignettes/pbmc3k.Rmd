@@ -26,6 +26,7 @@ This vignette introduces the CoFAST workflow for the analysis of PBMC3k single-c
 We demonstrate the use of CoFAST to PBMC3k data that are in the SeuratData package, which can be downloaded to the current working path by the following command:
 ```{r eval = FALSE}
 set.seed(2024) # set a random seed for reproducibility.
+library(Seurat)
 pbmc3k <- SeuratData::LoadData("pbmc3k")
 ## filter the seurat_annotation is NA
 idx <- which(!is.na(pbmc3k$seurat_annotations))

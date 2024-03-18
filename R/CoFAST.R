@@ -216,11 +216,16 @@ diagnostic.cor.eigs.Seurat <- function(
   }
 
   X_all <- Seurat::GetAssayData(object = object, slot = slot, assay = assay)
-  if (length(object@assays[[assay]]@var.features) == 0) {
+  var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
+  if (length(var.fe.tmp) == 0) {
     object <- Seurat::FindVariableFeatures(
       object, nfeatures = min(nfeatures, nrow(object)), assay = assay)
+    var.features <- get_varfeature_fromSeurat(object, assay=assay)
+  }else{
+    var.features <- var.fe.tmp
+    rm(var.fe.tmp)
   }
-  var.features <- object@assays[[assay]]@var.features
+  
   X <- Matrix::t(X_all[var.features, ])
   rm(X_all)
   n <- ncol(X)
@@ -264,11 +269,13 @@ NCFM <- function(
   
   X_all <- as.matrix(Seurat::GetAssayData(
     object = object, slot = slot, assay = assay))
+  var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
   if (is.null(var.features)) {
-    if (length(object@assays[[assay]]@var.features) == 0) {
+    if (length(var.fe.tmp) == 0) {
       stop("NCFM: please find the variable features using Seurat::FindVariableFeatures or DR.SC::FindSVGs before running this function!")
     }
-    var.features <- object@assays[[assay]]@var.features
+    var.features <- var.fe.tmp
+    rm(var.fe.tmp)
   } else {
     var.features <- intersect(
       var.features, rownames(X_all)) # slot is scale.data, restrict the var.features to be the features in scale.data
@@ -368,11 +375,12 @@ NCFM_fast <- function(
   tstart <- Sys.time()
   X_all <- (Seurat::GetAssayData(
     object = object, slot = slot, assay = assay)) # as.matrix
+  var.fe.tmp <- get_varfeature_fromSeurat(object, assay=assay)
   if (is.null(var.features)) {
-    if (length(object@assays[[assay]]@var.features) == 0) {
+    if (length(var.fe.tmp) == 0) {
       stop("NCFM: please find the variable features using Seurat::FindVariableFeatures or DR.SC::FindSVGs before running this function!")
     }
-    var.features <- object@assays[[assay]]@var.features
+    var.features <- var.fe.tmp
   } else {
     var.features <- intersect(
       var.features, rownames(X_all))
@@ -533,7 +541,8 @@ get.top.signature.dat <- function(df.list, ntop=5, expr.prop.cutoff=0.1) {
 #'
 find.signature.genes <- function(seu, distce.assay='distce', ident=NULL, expr.prop.cutoff=0.1,
                                  assay=NULL, genes.use=NULL){
-
+  
+  # seu <- pbmc3k_subset
   if(is.null(ident)){
     cell_label_vec <- Idents(seu)
   }else{
@@ -583,14 +592,20 @@ gene.activity.score.seu <- function(seu,  cell.set, distce.assay='distce', assay
   if (is.null(cells.use)) {
     cells.use <- colnames(seu)
   }
-  distce <- seu@assays[[distce.assay]][genes.use, cells.use]
+  #distce <- seu@assays[[distce.assay]][genes.use, cells.use]
+  # genenames <- row.names(GetAssayData(seu, assay = distce.assay, slot= 'data'))
+  distce <- GetAssayData(seu, assay = distce.assay, slot= 'data')[genes.use, cells.use]
   if (length(cell.set) > 1) {
-    genes.expr.prop <- apply(seu[[assay]]@data[genes.use, cell.set], 1, function(x) mean(x>0))
+    dat_tmp <- GetAssayData(seu, assay = assay, slot= 'data')[genes.use, cell.set]
+    genes.expr.prop <- apply(dat_tmp, 1, function(x) mean(x>0))
+    rm(dat_tmp)
   } else {
-    genes.expr.prop <- seu[[assay]]@data[genes.use, cell.set] > 0
+    dat_tmp <- GetAssayData(seu, assay = assay, slot= 'data')[genes.use, cell.set]
+    genes.expr.prop <- as.vector(as.matrix(dat_tmp) > 0)
+    rm(dat_tmp)
   }
   names(genes.expr.prop) <- genes.use
-  gene.activity.score(distce, genes.expr.prop, cells.use=cells.use, cell.set=cell.set)
+  gene.activity.score(distce, genes.expr.prop, cells.use=cell.set, cell.set=cell.set)
 }
 
 

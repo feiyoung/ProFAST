@@ -1,13 +1,31 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.3.tar.gz
+# R CMD check --as-cran ProFAST_1.4.tar.gz
 ## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
 # pkgdown::build_article("FASTdlpfc") #FASTsimu; pbmc3k; CosMx
 # pkgdown::build_article("FASTdlpfc2")
+
+
+# Compatize with Seurat V5 --------------------------------------------------
+
+get_varfeature_fromSeurat <- function(seu, assay=NULL){
+  
+  if(is.null(assay)) assay <- DefaultAssay(seu)
+  
+  if(inherits(seu[[assay]], "Assay5")){
+    var.features <- seu[[assay]]@meta.data$var.features
+    var.features <- var.features[!is.na(var.features)] 
+    
+  }else{
+    var.features <- seu[[assay]]@var.features
+  }
+  return(var.features)
+}
+
 # Basic functions ---------------------------------------------------------
 .logDiffTime <- function(main = "", t1 = NULL, verbose = TRUE, addHeader = FALSE,
                          t2 = Sys.time(), units = "mins", header = "*****",
@@ -405,10 +423,11 @@ FAST_single <- function (seu, Adj_sp, q = 15, fit.model=c('poisson', 'gaussian')
   X_all <- as.matrix(GetAssayData(object = seu, slot = slot, 
                                   assay = assay))
   # Adj_sp <- AddAdj(pos=as.matrix(seu@meta.data[,coords]), platform=platform)
-  if (length(seu@assays[[assay]]@var.features) == 0) {
+  var.fe.tmp <- get_varfeature_fromSeurat(seu, assay=assay)
+  if (length(var.fe.tmp) == 0) {
     stop("FAST_single: please find the variable features in seu before running this function!")
   }
-  var.features <- seu@assays[[assay]]@var.features
+  var.features <- var.fe.tmp
   if(verbose){
     if(fit.model=="poisson"){
       message( "******","Run the Poisson version of FAST...")
