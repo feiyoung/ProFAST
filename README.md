@@ -105,6 +105,14 @@ If  dependent packages (such as `DR.SC`) not normally installed are in CRAN, the
 # install the package on CRAN
 install.packages("DR.SC")
 ```
+## Common errors
+* When using function `coembedding_umap()`, user may meet the error: "useNames = NA is defunct. Instead, specify either useNames = TRUE or useNames = FALSE".
+Because the `matrixStats` R package remove the argument "useNames=NA" and change the warning to error. Thus, user can install the old version of `matrixStats` by the following code
+```{Linux}
+# all old versions that are less than 1.1.0  are ok.
+# here we take the version 1.1.0 as an example.
+remotes::install_version('matrixStats', version='1.1.0') 
+```
 
 
 # Demonstration
