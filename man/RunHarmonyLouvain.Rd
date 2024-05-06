@@ -2,7 +2,7 @@
 % Please edit documentation in R/iSCMEB.R
 \name{RunHarmonyLouvain}
 \alias{RunHarmonyLouvain}
-\title{Embedding alignment and clustering based on the embeddings from ProFAST}
+\title{Embedding alignment and clustering based on the embeddings from FAST}
 \usage{
 RunHarmonyLouvain(PRECASTObj, resolution = 0.5)
 }
@@ -15,5 +15,5 @@ RunHarmonyLouvain(PRECASTObj, resolution = 0.5)
 Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} added by a \code{Harmony} compoonent (including the aligned embeddings and embeddings of batch effects) and a \code{Louvain} component (including the clusters).
 }
 \description{
-Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from ProFAST as well as determining the number of clusters.
+Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from FAST as well as determining the number of clusters.
 }

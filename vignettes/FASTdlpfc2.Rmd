@@ -24,7 +24,7 @@ This vignette introduces the FAST workflow for the analysis of  two humn dorsola
 
 
 
-We demonstrate the use of FAST to two DLPFC Visium data that are [here](https://github.com/feiyoung/FAST/tree/main/vignettes_data), which can be downloaded to the current working path by the following command:
+We demonstrate the use of FAST to two DLPFC Visium data that are [here](https://github.com/feiyoung/ProFAST/tree/main/vignettes_data), which can be downloaded to the current working path by the following command:
 ```{r eval=FALSE}
 githubURL <- "https://github.com/feiyoung/FAST/blob/main/vignettes_data/seulist2_ID9_10.RDS?raw=true"
 download.file(githubURL,"seulist2_ID9_10.RDS",mode='wb')
@@ -43,7 +43,7 @@ library(Seurat)
 ```
 
 ## View the DLPFC data
-First, we view the the  two  spatial transcriptomics data with ST platform. There are ~15000 genes for each data batch and ~7000 spots in total.
+First, we view the the  two  spatial transcriptomics data with Visium platform. There are ~15000 genes for each data batch and ~7000 spots in total.
 ```{r  eval =FALSE}
 dlpfc2 ## a list including three Seurat object with default assay: RNA
 ```
@@ -143,7 +143,7 @@ str(PRECASTObj@resList)
 
 <details>
 <summary>**Run possion version**</summary>
-Users can also use the gaussian version by the following command:
+Users can also use the possion version by the following command:
 ```{r  eval = FALSE}
 set.seed(2023)
 PRECASTObj <- FAST(PRECASTObj, q=15)

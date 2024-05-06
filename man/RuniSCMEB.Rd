@@ -2,7 +2,7 @@
 % Please edit documentation in R/iSCMEB.R
 \name{RuniSCMEB}
 \alias{RuniSCMEB}
-\title{Fit an iSC-MEB model using the embeddings from ProFAST}
+\title{Fit an iSC-MEB model using the embeddings from FAST}
 \usage{
 RuniSCMEB(PRECASTObj, ...)
 }
@@ -15,5 +15,5 @@ RuniSCMEB(PRECASTObj, ...)
 Return a revised PRECASTObj object with an added component \code{iSCMEB} in the slot \code{PRECASTObj@resList} (including the aligned embeddings, clusters and posterior probability matrix of clusters).
 }
 \description{
-Fit an iSC-MEB model using the embeddings from ProFAST and the number of clusters obtained by Louvain.
+Fit an iSC-MEB model using the embeddings from FAST and the number of clusters obtained by Louvain.
 }

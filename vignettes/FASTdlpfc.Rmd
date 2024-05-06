@@ -1,0 +1,197 @@
+---
+title: 'FAST: single DLPFC section'
+author: "Wei Liu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FAST: single DLPFC section}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+This vignette introduces the FAST workflow for the analysis of  single-section rather than multi-secitons data, one humn dorsolateral prefrontal cortex (DLPFC) spatial transcriptomics dataset. In this vignette, the workflow of FAST consists of three steps
+
+* Independent preprocessing
+* Spatial dimension reduction using FAST
+* Downstream analysis (i.e. , embedding alignment and spatial clustering using iSC-MEB, visualization of clusters and embeddings, remove unwanted variation, differential expression analysis)
+
+
+
+We demonstrate the use of FAST to one DLPFC Visium data that are [here](https://github.com/feiyoung/ProFAST/tree/main/vignettes_data), which can be downloaded to the current working path by the following command:
+```{r eval=FALSE}
+githubURL <- "https://github.com/feiyoung/FAST/blob/main/vignettes_data/seulist2_ID9_10.RDS?raw=true"
+download.file(githubURL,"seulist2_ID9_10.RDS",mode='wb')
+
+```
+Then load to R. Here, we only focus one section.
+```{r  eval =FALSE}
+dlpfc2 <- readRDS("./seulist2_ID9_10.RDS")
+dlpfc <- dlpfc2[[1]]
+```
+
+The package can be loaded with the command:
+```{r  eval =FALSE}
+library(ProFAST) # load the package of FAST method
+library(PRECAST)
+library(Seurat)
+```
+
+## View the DLPFC data
+First, we view the the  spatial transcriptomics data with Visium platform. There are ~15000 genes  and ~3600 spots.
+```{r  eval =FALSE}
+dlpfc ## a list including three Seurat object with default assay: RNA
+```
+
+We observed that the genes are Ensembl IDs. In the following, we will transfer the Ensembl IDs to gene symbols for matching the housekeeping genes in the downstream analysis for removing the unwanted variations.
+```{r  eval =FALSE}
+print(row.names(dlpfc)[1:10])
+count <- dlpfc[['RNA']]@counts
+row.names(count) <- unname(transferGeneNames(row.names(count), now_name = "ensembl",
+                                                 to_name="symbol",
+                                                 species="Human", Method='eg.db'))
+print(row.names(count)[1:10])
+seu <- CreateSeuratObject(counts = count, meta.data = dlpfc@meta.data)
+seu
+```
+
+## Preprocessing
+We show how to preprocessing before fitting FAST, including log-normalization (if user use the gaussian version of FAST), and select highly variable genes.
+
+* Note: the spatial coordinates must be contained in the meta data and named as `row` and `col`, which benefits the identification of spaital coordinates by FAST.
+
+```{r  eval =FALSE}
+## Check the spatial coordinates: they are named as "row" and "col"!
+print(head(seu@meta.data))
+```
+
+```{r  eval =FALSE}
+seu <- NormalizeData(seu)
+seu <- FindVariableFeatures(seu)
+print(seu)
+print(seu[['RNA']]@var.features[1:10])
+```
+<details>
+  <summary>**Find spatially variable genes**</summary>
+Users can also use the spatially variable genes by the following command:
+```{r  eval = FALSE}
+set.seed(2023)
+seu <- DR.SC::FindSVGs(seu)
+### Check the results
+print(seu[['RNA']]@var.features[1:10])
+```
+</details>
+  
+
+
+## Fit FAST for this data
+
+For function `FAST_single`, users can specify the number of factors `q` and the fitted model `fit.model`. The `q` sets the number of spatial factors to be extracted, and a lareger one means more information to be extracted but higher computaional cost. The `fit.model` specifies the version of FAST to be fitted. The Gaussian version (`gaussian`) models the log-normalized matrix while the Poisson verion (`poisson`) models the count matrix; default as `poisson`.  (Note: The computational time required to run the analysis on personal PCs is approximately ~0.5 minute on a personal PC.)
+```{r  eval =FALSE}
+Adj_sp <- AddAdj(as.matrix(seu@meta.data[,c("row", "col")]), platform = "Visium")
+### set q= 15 here
+set.seed(2023)
+seu <- FAST_single(seu, Adj_sp=Adj_sp, q= 15, fit.model='poisson')
+seu
+```
+
+<details>
+  <summary>**Run possion version**</summary>
+  Users can also use the gaussian version by the following command:
+```{r  eval = FALSE}
+Adj_sp <- AddAdj(as.matrix(seu@meta.data[,c("row", "col")]), platform = "Visium")
+set.seed(2023)
+seu <- FAST_single(dlpfc, Adj_sp=Adj_sp, q= 15, fit.model='gaussian')
+### Check the results
+seu
+```
+</details>
+  
+### Evaluate the adjusted McFadden's pseudo R-square
+Next, we investigate the performance of dimension reduction by calculating the adjusted McFadden's pseudo R-square. The manual annotations are regarded as the ground truth in the `meta.data` of `seu`.
+
+```{r  eval =FALSE}
+## Obtain the true labels
+y <- seu$layer_guess_reordered
+### Evaluate the MacR2
+Mac <-  get_r2_mcfadden(Embeddings(seu, reduction='fast'), y)
+### output them
+print(paste0("MacFadden's R-square of FAST is ", round(Mac, 3)))
+```
+
+
+## Clustering analysis based on FAST embedding
+Based on the embeddings from FAST, we use `Louvain` to  perform clustering. In this downstream analysis, other methods for clustering can be also used. 
+
+```{r  eval =FALSE}
+seu <- FindNeighbors(seu, reduction = 'fast')
+seu <- FindClusters(seu, resolution = 0.4)
+seu$fast.cluster <- seu$seurat_clusters
+ARI.fast <- mclust::adjustedRandIndex(y, seu$fast.cluster)
+print(paste0("ARI of PCA is ", round(ARI.fast, 3)))
+```
+
+For comparison, we also run PCA to obtain PCA embeddings, and then conduct louvain clustering.
+```{r  eval =FALSE}
+seu <- ScaleData(seu)
+seu <- RunPCA(seu, npcs=15, verbose=FALSE)
+Mac.pca <- get_r2_mcfadden(Embeddings(seu, reduction='pca'), y)
+print(paste0("MacFadden's R-square of PCA is ", round(Mac.pca, 3)))
+set.seed(1)
+seu <- FindNeighbors(seu, reduction = 'pca', graph.name ="pca.graph")
+seu <- FindClusters(seu, resolution = 0.8,graph.name = 'pca.graph') 
+seu$pca.cluster <- seu$seurat_clusters
+ARI.pca <- mclust::adjustedRandIndex(y, seu$pca.cluster)
+print(paste0("ARI of PCA is ", round(ARI.pca, 3)))
+```
+## Visualization
+First, user can choose a beautiful color schema using `chooseColors()` in the R package `PRECAST`.
+```{r  eval =FALSE}
+cols_cluster <- chooseColors(palettes_name = "Nature 10", n_colors = 8, plot_colors = TRUE)
+```
+
+Then, we plot the spatial scatter plot for clusters using the function `DimPlot()` in the R package `Seurat`. We observe that the clusters from PCA are more messy while the clusters from FAST are more smoothing in spatial coordinates.
+```{r  eval =FALSE, fig.width=8, fig.height=3}
+seu <- PRECAST::Add_embed(embed = as.matrix(seu@meta.data[,c("row", "col")]), seu, embed_name = 'Spatial')
+seu
+p1 <- DimPlot(seu, reduction = 'Spatial', group.by = 'pca.cluster',cols = cols_cluster, pt.size = 1.5)
+p2 <- DimPlot(seu, reduction = 'Spatial', group.by = 'fast.cluster',cols = cols_cluster, pt.size = 1.5)
+drawFigs(list(p1, p2),layout.dim = c(1,2) )
+```
+
+
+Next, we visualize the clusters from `FAST` on the UMAP space, and observe the clusters are well separated in general.
+```{r  eval =FALSE, fig.width=5, fig.height=4}
+seu <- RunUMAP(seu, reduction = "fast", dims=1:15)
+seu
+DimPlot(seu, reduction='umap', group.by = "fast.cluster")
+```
+
+
+
+## Differential epxression analysis
+Finally, we condut the differential expression (DE) analysis. The function `FindAllMarkers()` in the `Seurat` R package is ued to achieve this analysis. And we extract the top five DE genes.
+```{r  eval =FALSE}
+Idents(seu) <- seu$fast.cluster
+dat_deg <- FindAllMarkers(seu)
+library(dplyr)
+n <- 5
+dat_deg %>%
+    group_by(cluster) %>%
+    top_n(n = n, wt = avg_log2FC) -> top5
+top5
+```
+
+
+
+<details>
+<summary>**Session Info**</summary>
+```{r}
+sessionInfo()
+```
+</details>

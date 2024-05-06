@@ -21,6 +21,14 @@ correct_genes <- function(XList, RList, HList, Tm, Adjlist, sigma_int, psi_int, 
     .Call(`_ProFAST_correct_genes`, XList, RList, HList, Tm, Adjlist, sigma_int, psi_int, alpha_int, gamma_int, zeta_int, maxIter, epsELBO, verbose)
 }
 
+pdistance_cpp <- function(Ar, Br, eta = 1e-10) {
+    .Call(`_ProFAST_pdistance_cpp`, Ar, Br, eta)
+}
+
+gene_embed_cpp <- function(X, ce_cell) {
+    .Call(`_ProFAST_gene_embed_cpp`, X, ce_cell)
+}
+
 #' @keywords internal
 #' @noRd
 #' 

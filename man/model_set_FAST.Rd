@@ -27,7 +27,7 @@ model_set_FAST(
 \item{seed}{a postive integer, the random seed to be set in initialization.}
 }
 \value{
-return a list including the parameters set in the arguments.
+return a Seurat object with new reduction  (named reduction.name) added to the `reductions` slot.
 }
 \description{
 Prepare parameters setup for FAST model fitting.

@@ -1,0 +1,135 @@
+---
+title: 'CoFAST: PBMC scRNA-seq data coembedding'
+author: "Wei Liu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CoFAST: PBMC scRNA-seq data coembedding}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette introduces the CoFAST workflow for the analysis of PBMC3k single-cell RNA sequencing dataset. In this vignette, the workflow of CoFAST consists of three steps
+
+* Independent preprocessing and model setting
+* Coembedding dimension reduction
+* Downstream analysis (i.e. , signature gene analysis, visualization of cell types and coembeddings)
+
+## Load and view data
+We demonstrate the use of CoFAST to PBMC3k data that are in the SeuratData package, which can be downloaded to the current working path by the following command:
+```{r eval = FALSE}
+set.seed(2024) # set a random seed for reproducibility.
+library(Seurat)
+pbmc3k <- SeuratData::LoadData("pbmc3k")
+## filter the seurat_annotation is NA
+idx <- which(!is.na(pbmc3k$seurat_annotations))
+pbmc3k <- pbmc3k[,idx]
+pbmc3k
+```
+
+The package can be loaded with the command:
+```{r  eval = FALSE}
+library(ProFAST) # load the package of FAST method
+library(Seurat)
+```
+
+## Preprocessing
+First, we normalize the data.
+```{r  eval = FALSE}
+pbmc3k <- NormalizeData(pbmc3k)
+```
+Then, we select the variable genes.
+```{r  eval = FALSE}
+pbmc3k <- FindVariableFeatures(pbmc3k)
+```
+
+## Coembedding using non-centered factor model
+We introduce how to use the non-centered factor model (NCFM) to perform coembedding for this scRNA-seq data. First, we determine the dimension of coembeddings. Here, we use the parallel analysis method to select the dimension.
+
+
+```{r  eval = FALSE, fig.width= 6, fig.height= 4.5}
+dat_cor <- diagnostic.cor.eigs(pbmc3k)
+q_est <- attr(dat_cor, "q_est")
+cat("q_est = ", q_est, '\n')
+```
+Subsequently, we calculate coembeddings by utilizing NCFM, and observe that the `reductions` field acquires an additional component named `ncfm`.
+```{r  eval = FALSE}
+pbmc3k <- NCFM(pbmc3k, q = q_est)
+pbmc3k
+```
+
+## Downstream analysis
+In the following, we show how to find the signature genes based on comebeddings.
+First, we calculate the distance matrix.
+```{r  eval = FALSE}
+pbmc3k <- pdistance(pbmc3k, reduction = "ncfm")
+```
+Next, we find the signature genes for each cell type
+```{r  eval = FALSE}
+print(table(pbmc3k$seurat_annotations))
+Idents(pbmc3k) <- pbmc3k$seurat_annotations
+df_sig_list <- find.signature.genes(pbmc3k)
+str(df_sig_list)
+```
+
+
+Then, we obtain the top five signature genes and organize them into a data.frame.  The colname `distance` means the distance between gene (i.e., VPREB3) and cells with the specific cell type (i.e., B cell), which is calculated based on the coembedding of genes and cells in the coembedding space. The distance is smaller, the association between gene and the cell type is stronger. The colname `expr.prop` represents the expression proportion of the gene (i.e., VPREB3) within the cell type (i.e., B cell). The colname `label` means the cell types and colname `gene` denotes the gene name. By the data.frame object, we know `VPREB3` is the one of the top signature gene of B cell.
+
+```{r  eval = FALSE}
+dat <- get.top.signature.dat(df_sig_list, ntop = 5, expr.prop.cutoff = 0.1)
+head(dat)
+```
+
+Next, we calculate the UMAP projections of coembeddings of cells and the selected signature genes.
+```{r  eval = FALSE, fig.width=10,fig.height=7}
+pbmc3k <- coembedding_umap(
+  pbmc3k, reduction = "ncfm", reduction.name = "UMAP",
+  gene.set = unique(dat$gene))
+```
+
+Furthermore, we visualize the cells and top five signature genes of B cell in the UMAP space of coembedding. We observe that the UMAP projections of the five signature genes are near to B cells, which indicates these genes are enriched in B cells.
+```{r  eval = FALSE, fig.width=8,fig.height=5}
+## choose beutifual colors
+cols_cluster <- c("black", PRECAST::chooseColors(palettes_name = "Light 13", n_colors = 9, plot_colors = TRUE))
+p1 <- coembed_plot(
+   pbmc3k, reduction = "UMAP",
+   gene_txtdata = subset(dat, label=='B'), 
+   cols=cols_cluster,pt_text_size = 3)
+p1
+```
+
+Then, we visualize the cells and top five signature genes of all involved cell types in the UMAP space of coembedding. We observe that the UMAP projections of the five signature genes are near to the corresponding cell type, which indicates these genes are enriched in the corresponding cells.
+
+```{r  eval = FALSE, fig.width=8,fig.height=5}
+p2 <- coembed_plot(
+   pbmc3k, reduction = "UMAP",
+   gene_txtdata = dat, cols=cols_cluster,
+   pt_text_size = 3)
+p2
+```
+
+In addtion, we can fully take advantages of the visualization functions in `Seurat` package for visualization. The following is an example that visualizes the cell types on the UMAP space.
+```{r  eval = FALSE, fig.width=7,fig.height=4}
+cols_type <- cols_cluster[-1]
+names(cols_type)<-  sort(levels(Idents(pbmc3k)))
+DimPlot(pbmc3k, reduction = 'UMAP', cols=cols_type)
+```
+
+Then, there is another example that we plot the two signature genes of B cell on UMAP space, in which we observed the high expression in  B cells in constrast to other cell types.
+```{r  eval = FALSE, fig.width=8,fig.height=3.6}
+FeaturePlot(pbmc3k, reduction = 'UMAP', features = c("CD79A", "VPREB3"))
+```
+
+<details>
+<summary>**Session Info**</summary>
+```{r}
+sessionInfo()
+```
+</details>
