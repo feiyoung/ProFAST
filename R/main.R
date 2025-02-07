@@ -6,7 +6,7 @@
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
-# pkgdown::build_article("FASTdlpfc") #FASTsimu; pbmc3k; CosMx
+# pkgdown::build_article("FASTsimu") #FASTsimu; pbmc3k; CosMx;FASTdlpfc
 # pkgdown::build_article("FASTdlpfc2")
 
 
@@ -543,6 +543,7 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   # suppressMessages(rrequire(Matrix))
   # suppressMessages(rrequire(Seurat))
   
+  fit.model <- match.arg(fit.model)
   ## Arguments checking
   if(!inherits(PRECASTObj, "PRECASTObj")) 
     stop("FAST: Check the argument: PRECASTObj!  PRECASTObj must be a PRECASTObj object.")
@@ -559,7 +560,7 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   
   
   
-  fit.model <- match.arg(fit.model)
+  
   
   verbose <- PRECASTObj@parameterList$verbose
   if(verbose){
@@ -577,9 +578,9 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   get_data <- function(seu, assay = NULL, fit.model='poisson'){
     if(is.null(assay)) assay <- DefaultAssay(seu)
     if(fit.model=='poisson'){
-      dat <- Matrix::t(seu[[assay]]@counts)
+      dat <- Matrix::t(GetAssayData(seu, assay = assay, slot= 'counts'))
     }else if(fit.model=='gaussian'){
-      dat <- Matrix::t(seu[[assay]]@data)
+      dat <- Matrix::t(GetAssayData(seu, assay = assay, slot= 'data'))
     }else{
       stop("FAST: Check the argument: fit.model! It is not supported for this fit.model!")
     }
@@ -589,7 +590,7 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   XList <- lapply(PRECASTObj@seulist,  get_data, fit.model=fit.model)
   
   # PRECASTObj@resList$FAST <- list()
-  PRECASTObj@resList$FAST <- FAST_structure(XList, q= 15,  fit.model = fit.model, 
+  PRECASTObj@resList$FAST <- FAST_structure(XList, q= q,  fit.model = fit.model, 
                                           AdjList = PRECASTObj@AdjList, parameterList = PRECASTObj@parameterList)
   
   .logDiffTime(sprintf(paste0("%s Finish FAST"), "*****"), t1 = tstart, verbose = verbose)
@@ -725,7 +726,8 @@ selectHKFeatures <- function(seulist, HKFeatureList, HKFeatures=200){
   # Remove zero-variance genes
   genes_zeroVar <- unique(unlist(lapply(seulist, function(x){
     assay <- DefaultAssay(x)
-    geneUnion[Matrix::rowSums(x[[assay]]@counts[geneUnion,])==0]
+    cnts <- GetAssayData(x, assay = assay, slot= 'counts')
+    geneUnion[Matrix::rowSums(cnts[geneUnion,])==0]
   })))
   
   
@@ -1088,7 +1090,7 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
       seu_tmp <- seu_tmp[, colnames(PRECASTObj@seulist[[r]])]
       return(seu_tmp)
     })
-    XList_hk <- pbapply::pblapply(seulist_HK, function(x) Matrix::t(x[['RNA']]@data))
+    XList_hk <- pbapply::pblapply(seulist_HK, function(x) Matrix::t(GetAssayData(x, assay = "RNA", slot= 'data')))
     nvec <- sapply(XList_hk, nrow)
     XList_hk <- pbapply::pblapply(XList_hk, as.matrix)
     Xmat_hk <- matlist2mat(XList_hk)
@@ -1133,7 +1135,8 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     defAssay_vec <- sapply(PRECASTObj@seulist, DefaultAssay)
     if(any(defAssay_vec!=defAssay_vec[1])) warning("IntegrateSpaData: there are different default assays in PRECASTObj@seulist that will be used to integrating!")
     n_r <- length(defAssay_vec)
-    XList <- lapply(1:n_r,  function(r) Matrix::t(PRECASTObj@seulist[[r]][[defAssay_vec[r]]]@data))
+    # XList <- lapply(1:n_r,  function(r) Matrix::t(PRECASTObj@seulist[[r]][[defAssay_vec[r]]]@data))
+    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(PRECASTObj@seulist[[r]], assay = defAssay_vec[r], slot= 'data') ))
     XList <- lapply(XList, function(x) as.matrix(x))
   }else{ ## remove the unwanted variation for all genes in the data
     ## use the same genes
@@ -1148,7 +1151,8 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     defAssay_vec <- sapply(seuList_raw, DefaultAssay)
     if(any(defAssay_vec!=defAssay_vec[1])) warning("IntegrateSpaData: there are different default assays in PRECASTObj@seulist that will be used to integrating!")
     n_r <- length(defAssay_vec)
-    XList <- lapply(1:n_r,  function(r) Matrix::t(seuList_raw[[r]][[defAssay_vec[r]]]@data))
+    # XList <- lapply(1:n_r,  function(r) Matrix::t(seuList_raw[[r]][[defAssay_vec[r]]]@data))
+    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(seuList_raw[[r]], assay = defAssay_vec[r], slot= 'data')))
     XList <- lapply(XList, function(x) as.matrix(x))
   }
   
@@ -1211,7 +1215,9 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
   colnames(count) <- row.names(hX_pois)
   seuInt <- CreateSeuratObject(counts = count, project = "FAST", assay = "RNA", meta.data = meta_data)
   row.names(hX_pois) <- colnames(seuInt)
-  seuInt[["RNA"]]@data <- t(hX_pois)
+  #seuInt[["RNA"]]@data <- t(hX_pois)
+  seuInt[["RNA"]] <- SetAssayData(seuInt[["RNA"]], layer = "data", new.data = t(hX_pois))
+  
   
   seuInt <- Add_embed(matlist2mat(PRECASTObj@resList$FAST$hV), seuInt, embed_name = 'FAST', assay='RNA')
   if(Method=="iSC-MEB"){
