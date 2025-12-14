@@ -7,7 +7,7 @@
 RunHarmonyLouvain(PRECASTObj, resolution = 0.5)
 }
 \arguments{
-\item{PRECASTObj}{a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.}
+\item{PRECASTObj}{a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.}
 
 \item{resolution}{an optional real, the value of the resolution parameter, use a value above (below) 1.0 if you want to obtain a larger (smaller) number of communities.}
 }

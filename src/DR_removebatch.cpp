@@ -12,7 +12,6 @@
 
 #include "DR_removebatch.h"
 
-#define INT_MIN (-INT_MAX - 1)
 
 using namespace Rcpp;
 using namespace arma;
@@ -429,7 +428,7 @@ void runICM_sp_embed(const arma::field<mat>& Vf, arma::field<ivec>& yf, arma::fi
   
   // basic info.
   int r, r_max = Vf.n_elem, K = Mu0.n_rows;
-  int i, iter, k, n;
+  int  iter, k, n;
   
   // two cached objects used for parameters update.
   field<mat> Ux(r_max);
@@ -602,7 +601,7 @@ Obj_SCMEBTwo SepSpatialClusterCpp_GivenK(
   mat Lam0 = zeros(M,q);
   
   vec loglik(maxIter);
-  loglik(0) = INT_MIN;
+  loglik(0) = -1e15;
   // vec Qvec(loglik);
   
   // pseudo obserbed loglikelihood.

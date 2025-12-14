@@ -5,7 +5,7 @@
 #include<ctime>
 
 
-#define INT_MIN (-INT_MAX - 1)
+
 
 using namespace Rcpp;
 using namespace arma;
@@ -177,7 +177,7 @@ Rcpp::List correct_one_gene(const Rcpp::List& Xlist, const Rcpp::List& RList,
   field<sp_mat> Adjf(M);
   field<mat> Hf(M), Rf(M);
   field<vec> Eu(M), Varu(M), Xf(M); // require to initialize values not only shape!!!
-  int n;
+  // int n;
   for(r=0; r < M; ++r){ 
     vec Xtmp = Xlist[r]; // enforce to become a matrix.
     Xf(r) = Xtmp;
@@ -196,7 +196,7 @@ Rcpp::List correct_one_gene(const Rcpp::List& Xlist, const Rcpp::List& RList,
   }
   field<vec> Muu(Eu);
   vec elbo_vec(maxIter);
-  elbo_vec(0) = INT_MIN;
+  elbo_vec(0) = -1e15;
   int iter;
   
   Rprintf("Finish variable initialization \n");

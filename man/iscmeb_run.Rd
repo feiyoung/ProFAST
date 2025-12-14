@@ -34,7 +34,7 @@ iscmeb_run(
 
 \item{verbose}{an optional intger, spcify the number of housekeeping genes to be selected.}
 
-\item{int.model}{an optional string, specify which Gaussian mixture model is used in evaluting the initial values for iSC.MEB, default as "EEE"; and see \code{\link{Mclust}} for more models' names.}
+\item{int.model}{an optional string, specify which Gaussian mixture model is used in evaluting the initial values for iSC.MEB, default as "EEE"; and see \code{\link[mclust]{Mclust}} for more models' names.}
 
 \item{init.start}{an optional number of times to calculate the initial value (1 by default). When init.start is larger than 1, initial value will be determined by log likelihood of mclust results.}
 

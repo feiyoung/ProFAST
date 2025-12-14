@@ -7,7 +7,7 @@
 RuniSCMEB(PRECASTObj, ...)
 }
 \arguments{
-\item{PRECASTObj}{a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.}
+\item{PRECASTObj}{a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.}
 
 \item{...}{other arguments passed to \code{\link{iscmeb_run}}.}
 }

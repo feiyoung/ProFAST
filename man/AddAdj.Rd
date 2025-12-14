@@ -22,7 +22,7 @@ The platform helps to calculate the adjacency matrix by defining the neighborhoo
 
 \item{neighbors}{an optional postive integer,  specify how many neighbors used in calculation, default as 6.}
 
-\item{...}{Other arguments passed to \code{\link{getAdj_auto}}.}
+\item{...}{Other arguments passed to \code{\link[DR.SC]{getAdj_auto}}.}
 }
 \value{
 return a sparse matrix, representing the adjacency matrix.

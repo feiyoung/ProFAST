@@ -7,7 +7,7 @@
 FAST(PRECASTObj, q = 15, fit.model = c("poisson", "gaussian"))
 }
 \arguments{
-\item{PRECASTObj}{a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.}
+\item{PRECASTObj}{a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.}
 
 \item{q}{an optional integer, specify the number of low-dimensional embeddings to extract in FAST}
 

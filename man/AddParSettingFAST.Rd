@@ -7,7 +7,7 @@
 AddParSettingFAST(PRECASTObj, ...)
 }
 \arguments{
-\item{PRECASTObj}{a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.}
+\item{PRECASTObj}{a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.}
 
 \item{...}{other arguments to be passed to \code{\link{model_set_FAST}} function.}
 }

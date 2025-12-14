@@ -1,8 +1,8 @@
 Package: ProFAST
 Type: Package
 Title: Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction
-Version: 1.4
-Date: 2025-02-07
+Version: 1.7
+Date: 2025-12-14
 Authors@R: 
     c(person(given = "Wei",
              family = "Liu",
@@ -27,16 +27,12 @@ Imports:
     furrr,
     future,
     ggplot2,
-    AnnotationDbi,
     DR.SC,
     Matrix,
     mclust,
     PRECAST,
     pbapply,
-    biomaRt,
     irlba,
-    org.Hs.eg.db,
-    org.Mm.eg.db,
     Seurat,
     parallel,
     harmony,
@@ -51,6 +47,7 @@ Suggests:
     rmarkdown,
     performance,
     nnet,
+    biomaRt,
     scater,
     ggrepel,
     RANN,
@@ -61,4 +58,4 @@ LinkingTo:
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2

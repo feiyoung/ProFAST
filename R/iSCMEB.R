@@ -213,7 +213,7 @@ fit.iscmeb <- function(
 #' @param maxIter the maximum iteration of ICM-EM algorithm. The default is 25.
 #' @param epsLogLik a string, the species, one of 'Human' and 'Mouse'.
 #' @param verbose an optional intger, spcify the number of housekeeping genes to be selected.
-#' @param int.model an optional string, specify which Gaussian mixture model is used in evaluting the initial values for iSC.MEB, default as "EEE"; and see \code{\link{Mclust}} for more models' names.
+#' @param int.model an optional string, specify which Gaussian mixture model is used in evaluting the initial values for iSC.MEB, default as "EEE"; and see \code{\link[mclust]{Mclust}} for more models' names.
 #' @param init.start an optional number of times to calculate the initial value (1 by default). When init.start is larger than 1, initial value will be determined by log likelihood of mclust results.
 #' @param Sigma_equal an optional logical value, specify whether Sigmaks are equal, default as \code{FALSE}.
 #' @param Sigma_diag an optional logical value, specify whether Sigmaks are diagonal matrices, default as \code{TRUE}.
@@ -271,7 +271,7 @@ drLouvain <- function(hZ, resolution=0.8){
 
 #' Embedding alignment and clustering based on the embeddings from FAST
 #' @description  Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from FAST as well as determining the number of clusters.
-#' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
+#' @param PRECASTObj a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.
 #' @param resolution 	an optional real, the value of the resolution parameter, use a value above (below) 1.0 if you want to obtain a larger (smaller) number of communities.
 #' @return Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} added by a \code{Harmony} compoonent (including the aligned embeddings and embeddings of batch effects) and a \code{Louvain} component (including the clusters).
 #' @export
@@ -327,7 +327,7 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
 
 #' Fit an iSC-MEB model using the embeddings from FAST
 #' @description  Fit an iSC-MEB model using the embeddings from FAST and the number of clusters obtained by Louvain.
-#' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
+#' @param PRECASTObj a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.
 #' @param ... other arguments passed to \code{\link{iscmeb_run}}.
 #' @return Return a revised PRECASTObj object with an added component \code{iSCMEB} in the slot \code{PRECASTObj@resList} (including the aligned embeddings, clusters and posterior probability matrix of clusters).
 #' @export

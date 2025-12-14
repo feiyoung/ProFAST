@@ -11,8 +11,6 @@
 //#include <mutex>
 
 
-#define INT_MIN (-INT_MAX - 1)
-
 using namespace std;
 using namespace Rcpp;
 using namespace arma;
@@ -427,7 +425,7 @@ Rcpp:: List profast_g_cpp(const Rcpp::List& Xlist, const Rcpp::List& Adjlist, co
  
  // Rprintf("Step into cpp file 3 \n");
   vec loglik(maxIter);
-  loglik(0) = INT_MIN;
+  loglik(0) = -1e15;
   // vec Qvec(loglik);
   
   // pseudo obserbed loglikelihood.
@@ -741,7 +739,7 @@ Rcpp::List profast_p_cpp(const Rcpp::List& Xlist, const Rcpp::List& AList, const
   
   
   vec elbo_vec(maxIter);
-  elbo_vec(0) = INT_MIN;
+  elbo_vec(0) = -1e15;
   int iter;
   
   // create posterior expectation and covariance of z, v.

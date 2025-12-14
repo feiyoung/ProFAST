@@ -120,6 +120,10 @@ remotes::install_version('matrixStats', version='1.1.0')
 For an example of typical ProFAST usage, please see our [Package Website](https://feiyoung.github.io/ProFAST/index.html) for a demonstration and overview of the functions included in ProFAST.
 
 # NEWs
+* ProFAST version 1.7 (2025-12-14): Resolve the issue stemming from the deprecated `slot` parameter in the `GetAssayData()` function within the `SeuratObject` package.
+
+* ProFAST version 1.5 (2025-03-18)
+
 * ProFAST version 1.4 (2024-03-16)
 
 * ProFAST version 1.3 (2024-01-09)

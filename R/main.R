@@ -1,13 +1,15 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.4.tar.gz
+# R CMD check --as-cran ProFAST_1.7.tar.gz
+# R CMD check --use-valgrind ProFAST_1.5.tar.gz
 ## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
 # pkgdown::build_home()
 # pkgdown::build_reference()
 # pkgdown::build_article("FASTsimu") #FASTsimu; pbmc3k; CosMx;FASTdlpfc
 # pkgdown::build_article("FASTdlpfc2")
+# R CMD INSTALL --preclean --clean --debug ProFAST
 
 
 # Compatize with Seurat V5 --------------------------------------------------
@@ -314,7 +316,7 @@ get_r2_mcfadden <- function(embeds, y){
 #' @param platform a string, specify the platform of the provided data, default as "Others". There are more platforms to be chosen, including "Visuim", "ST" and "Others" ("Others" represents the other SRT platforms except for 'Visium' and 'ST')
 #'  The platform helps to calculate the adjacency matrix by defining the neighborhoods when type="fixed_distance" is chosen.
 #' @param neighbors an optional postive integer,  specify how many neighbors used in calculation, default as 6. 
-#' @param ... Other arguments passed to \code{\link{getAdj_auto}}.
+#' @param ... Other arguments passed to \code{\link[DR.SC]{getAdj_auto}}.
 #' @return return a sparse matrix, representing the adjacency matrix.
 #' @details When the type = "fixed_distance", then the spots within the Euclidean distance cutoffs from one spot are regarded as the neighbors of this spot. When the type = "fixed_number", the K-nearest spots are regarded as the neighbors of each spot.
 #' 
@@ -420,7 +422,7 @@ FAST_single <- function (seu, Adj_sp, q = 15, fit.model=c('poisson', 'gaussian')
   
   if (is.null(assay)) 
     assay <- DefaultAssay(seu)
-  X_all <- as.matrix(GetAssayData(object = seu, slot = slot, 
+  X_all <- as.matrix(GetAssayData(object = seu, layer = slot, 
                                   assay = assay))
   # Adj_sp <- AddAdj(pos=as.matrix(seu@meta.data[,coords]), platform=platform)
   var.fe.tmp <- get_varfeature_fromSeurat(seu, assay=assay)
@@ -514,7 +516,7 @@ FAST_structure <- function(XList, AdjList, q= 15,  fit.model = c("poisson", "gau
 
 #' Add FAST model settings for a PRECASTObj object
 #'
-#' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
+#' @param PRECASTObj a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.
 #' @param ... other arguments to be passed to \code{\link{model_set_FAST}} function.
 #' @references None
 #' @return  Return a revised PRECASTObj object with slot \code{parameterList} changed.
@@ -528,7 +530,7 @@ AddParSettingFAST <- function(PRECASTObj, ...){
   
 #' Run FAST model for a PRECASTObj object
 #'
-#' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
+#' @param PRECASTObj a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.
 #' @param q an optional integer, specify the number of low-dimensional embeddings to extract in FAST
 #' @param fit.model an optional string, specify the version of FAST to be fitted. The Gaussian version models the log-count matrices while the Poisson verions models the count matrices; default as poisson.
 #' @references None
@@ -578,9 +580,9 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
   get_data <- function(seu, assay = NULL, fit.model='poisson'){
     if(is.null(assay)) assay <- DefaultAssay(seu)
     if(fit.model=='poisson'){
-      dat <- Matrix::t(GetAssayData(seu, assay = assay, slot= 'counts'))
+      dat <- Matrix::t(GetAssayData(seu, assay = assay, layer= 'counts'))
     }else if(fit.model=='gaussian'){
-      dat <- Matrix::t(GetAssayData(seu, assay = assay, slot= 'data'))
+      dat <- Matrix::t(GetAssayData(seu, assay = assay, layer= 'data'))
     }else{
       stop("FAST: Check the argument: fit.model! It is not supported for this fit.model!")
     }
@@ -608,20 +610,16 @@ FAST <- function(PRECASTObj, q= 15, fit.model=c("poisson", "gaussian")){
 #' @param now_name a string, the current format of gene names, one of 'ensembl', 'symbol'.
 #' @param to_name a string, the  format of gene names to transfer, one of 'ensembl', 'symbol'.
 #' @param species a string, the species, one of 'Human' and 'Mouse'.
-#' @param Method a string, the method to use, one of 'biomaRt' and 'eg.db', default as 'eg.db'.
 #' @return Return a string vector of transferred gene names. The gene names not matched in the database will not change.
 #' @export
-#' @importFrom org.Hs.eg.db org.Hs.eg.db
-#' @importFrom org.Mm.eg.db org.Mm.eg.db
-#' @importFrom AnnotationDbi mapIds
-#' @importFrom biomaRt useDataset getBM useMart
 #' @examples
+#' \dontrun{
 #' geneNames <- c("ENSG00000171885", "ENSG00000115756")
-#' transferGeneNames(geneNames, now_name = "ensembl", to_name="symbol",species="Human", Method='eg.db')
-#'
+#' transferGeneNames(geneNames, now_name = "ensembl", to_name="symbol", species="Human")
+#' }
 #'
 transferGeneNames <- function(genelist, now_name = "ensembl", to_name="symbol",
-                              species=c("Human", "Mouse"), Method=c('eg.db', 'biomart') ){
+                              species=c("Human", "Mouse")){
   
   firstup <- function(x) {
     ## First letter use upper capital
@@ -629,20 +627,38 @@ transferGeneNames <- function(genelist, now_name = "ensembl", to_name="symbol",
     substr(x, 1, 1) <- toupper(substr(x, 1, 1))
     x
   }
+  Method <- c( 'biomart') 
   species <- match.arg(species)
-  Method <- match.arg(Method)
   if(! toupper(species) %in% c("HUMAN", "MOUSE")) stop("Check species: the current version only support Human and Mouse!")
+  
+  
+  
   transferredNames <- switch (toupper(species),
                               HUMAN = {
-                                if(tolower(Method)=='eg.db'){
-                                  #require(org.Hs.eg.db)
-                                  mapIds(org.Hs.eg.db, keys = genelist,
-                                         keytype = toupper(now_name), column=toupper(to_name))
-                                }else if(tolower(Method)=='biomart'){
+                                # if(tolower(Method)=='eg.db'){
+                                #   #require(org.Hs.eg.db)
+                                #   if (requireNamespace("org.Hs.eg.db", quietly = TRUE) && requireNamespace("AnnotationDbi", quietly = TRUE)) {
+                                #     
+                                #     AnnotationDbi::mapIds(org.Hs.eg.db::org.Hs.eg.db, keys = genelist,
+                                #            keytype = toupper(now_name), column=toupper(to_name))
+                                #   } else {
+                                #     # 处理包未安装的情况
+                                #     message("Package 'org.Hs.eg.db' is not installed. Please install it to use this feature.")
+                                #   }
+                                #   
+                                # }else 
+                                if(tolower(Method)=='biomart'){
                                   #require(biomaRt)
-                                  mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
-                                  G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
-                                                  values=genelist,mart= mart)
+                                  if (requireNamespace("biomaRt", quietly = TRUE)) {
+                                    
+                                    mart <- biomaRt::useDataset("hsapiens_gene_ensembl", biomaRt::useMart("ensembl"))
+                                    G_list <- biomaRt::getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
+                                                    values=genelist,mart= mart)
+                                    
+                                  } else {
+                                    # 处理包未安装的情况
+                                    message("Package 'biomaRt' is not installed. Please install it to use this feature: BiocManager::install('biomaRt').")
+                                  }
                                   
                                   idx_in_genelst <- which(G_list$ensembl_gene_id %in% genelist)
                                   G_list <- G_list[idx_in_genelst,]
@@ -661,15 +677,31 @@ transferGeneNames <- function(genelist, now_name = "ensembl", to_name="symbol",
                                 
                               },
                               MOUSE= {
-                                if(tolower(Method)=='eg.db'){
-                                  #rrequire(org.Mm.eg.db)
-                                  mapIds(org.Mm.eg.db, keys = genelist,
-                                         keytype = toupper(now_name), column=toupper(to_name))
-                                }else if(tolower(Method)=='biomart'){
+                                # if(tolower(Method)=='eg.db'){
+                                #   #rrequire(org.Mm.eg.db)
+                                #   if (requireNamespace("org.Mm.eg.db", quietly = TRUE) && requireNamespace("AnnotationDbi", quietly = TRUE)) {
+                                #     
+                                #     AnnotationDbi::mapIds(org.Mm.eg.db::org.Mm.eg.db, keys = genelist,
+                                #            keytype = toupper(now_name), column=toupper(to_name))
+                                #   } else {
+                                #     # 处理包未安装的情况
+                                #     message("Package 'org.Mm.eg.db' or 'AnnotationDbi' is not installed. Please install it to use this feature: i,e, BiocManager::install('org.Mm.eg.db').")
+                                #   }
+                                #   
+                                # }else 
+                                if(tolower(Method)=='biomart'){
                                   #rrequire(biomaRt)
-                                  mart <- useDataset(" mmusculus_gene_ensembl", useMart("ensembl"))
-                                  G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
-                                                  values=genelist,mart= mart)
+                                  if (requireNamespace("biomaRt", quietly = TRUE)) {
+                                    
+                                    mart <- biomaRt::useDataset(" mmusculus_gene_ensembl", biomaRt::useMart("ensembl"))
+                                    G_list <- biomaRt::getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),
+                                                    values=genelist,mart= mart)
+                                    
+                                  } else {
+                                    # 处理包未安装的情况
+                                    message("Package 'biomaRt' is not installed. Please install it to use this feature: BiocManager::install('biomaRt').")
+                                  }
+                                  
                                   
                                   idx_in_genelst <- which(G_list$ensembl_gene_id %in% genelist)
                                   G_list <- G_list[idx_in_genelst,]
@@ -726,7 +758,7 @@ selectHKFeatures <- function(seulist, HKFeatureList, HKFeatures=200){
   # Remove zero-variance genes
   genes_zeroVar <- unique(unlist(lapply(seulist, function(x){
     assay <- DefaultAssay(x)
-    cnts <- GetAssayData(x, assay = assay, slot= 'counts')
+    cnts <- GetAssayData(x, assay = assay, layer= 'counts')
     geneUnion[Matrix::rowSums(cnts[geneUnion,])==0]
   })))
   
@@ -1026,7 +1058,7 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 
 #' Integrate multiple SRT data into a Seurat object
 #' @description  Integrate multiple SRT data based on the \code{PRECASTObj} object by FAST and other model fitting.
-#' @param PRECASTObj a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.
+#' @param PRECASTObj a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.
 #' @param seulist_HK a list with Seurat object as component including only the housekeeping genes.
 #' @param Method a string, specify the method to be used and two methods are supprted: \code{iSC-MEB} and \code{HarmonyLouvain}. The default is \code{iSC-MEB}.
 #' @param seuList_raw an optional list with Seurat object, the raw data.
@@ -1038,7 +1070,7 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @export
 #' @details If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment \code{subsample_rate}. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations. 
 #' @importFrom Matrix t sparseMatrix
-#' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-`
+#' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-` SetAssayData
 #' @importFrom PRECAST Add_embed
 #' @import gtools
 #' @useDynLib ProFAST, .registration = TRUE
@@ -1090,7 +1122,7 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
       seu_tmp <- seu_tmp[, colnames(PRECASTObj@seulist[[r]])]
       return(seu_tmp)
     })
-    XList_hk <- pbapply::pblapply(seulist_HK, function(x) Matrix::t(GetAssayData(x, assay = "RNA", slot= 'data')))
+    XList_hk <- pbapply::pblapply(seulist_HK, function(x) Matrix::t(GetAssayData(x, assay = "RNA", layer= 'data')))
     nvec <- sapply(XList_hk, nrow)
     XList_hk <- pbapply::pblapply(XList_hk, as.matrix)
     Xmat_hk <- matlist2mat(XList_hk)
@@ -1136,7 +1168,7 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     if(any(defAssay_vec!=defAssay_vec[1])) warning("IntegrateSpaData: there are different default assays in PRECASTObj@seulist that will be used to integrating!")
     n_r <- length(defAssay_vec)
     # XList <- lapply(1:n_r,  function(r) Matrix::t(PRECASTObj@seulist[[r]][[defAssay_vec[r]]]@data))
-    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(PRECASTObj@seulist[[r]], assay = defAssay_vec[r], slot= 'data') ))
+    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(PRECASTObj@seulist[[r]], assay = defAssay_vec[r], layer= 'data') ))
     XList <- lapply(XList, function(x) as.matrix(x))
   }else{ ## remove the unwanted variation for all genes in the data
     ## use the same genes
@@ -1152,7 +1184,7 @@ IntegrateSRTData <- function(PRECASTObj, seulist_HK, Method=c("iSC-MEB", "Harmon
     if(any(defAssay_vec!=defAssay_vec[1])) warning("IntegrateSpaData: there are different default assays in PRECASTObj@seulist that will be used to integrating!")
     n_r <- length(defAssay_vec)
     # XList <- lapply(1:n_r,  function(r) Matrix::t(seuList_raw[[r]][[defAssay_vec[r]]]@data))
-    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(seuList_raw[[r]], assay = defAssay_vec[r], slot= 'data')))
+    XList <- lapply(1:n_r,  function(r) Matrix::t(GetAssayData(seuList_raw[[r]], assay = defAssay_vec[r], layer= 'data')))
     XList <- lapply(XList, function(x) as.matrix(x))
   }
   

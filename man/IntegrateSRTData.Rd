@@ -16,7 +16,7 @@ IntegrateSRTData(
 )
 }
 \arguments{
-\item{PRECASTObj}{a PRECASTObj object created by \code{\link{CreatePRECASTObject}}.}
+\item{PRECASTObj}{a PRECASTObj object created by \code{\link[PRECAST]{CreatePRECASTObject}}.}
 
 \item{seulist_HK}{a list with Seurat object as component including only the housekeeping genes.}
 

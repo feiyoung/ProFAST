@@ -8,8 +8,7 @@ transferGeneNames(
   genelist,
   now_name = "ensembl",
   to_name = "symbol",
-  species = c("Human", "Mouse"),
-  Method = c("eg.db", "biomart")
+  species = c("Human", "Mouse")
 )
 }
 \arguments{
@@ -20,8 +19,6 @@ transferGeneNames(
 \item{to_name}{a string, the  format of gene names to transfer, one of 'ensembl', 'symbol'.}
 
 \item{species}{a string, the species, one of 'Human' and 'Mouse'.}
-
-\item{Method}{a string, the method to use, one of 'biomaRt' and 'eg.db', default as 'eg.db'.}
 }
 \value{
 Return a string vector of transferred gene names. The gene names not matched in the database will not change.
@@ -30,8 +27,9 @@ Return a string vector of transferred gene names. The gene names not matched in 
 Transfer gene names from one fortmat to the other format for two species: human and mouse.
 }
 \examples{
+\dontrun{
 geneNames <- c("ENSG00000171885", "ENSG00000115756")
-transferGeneNames(geneNames, now_name = "ensembl", to_name="symbol",species="Human", Method='eg.db')
-
+transferGeneNames(geneNames, now_name = "ensembl", to_name="symbol", species="Human")
+}
 
 }
