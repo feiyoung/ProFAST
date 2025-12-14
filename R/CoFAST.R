@@ -596,7 +596,7 @@ gene.activity.score.seu <- function(seu,  cell.set, distce.assay='distce', assay
   # genenames <- row.names(GetAssayData(seu, assay = distce.assay, slot= 'data'))
   distce <- GetAssayData(seu, assay = distce.assay, layer= 'data')[genes.use, cells.use]
   if (length(cell.set) > 1) {
-    dat_tmp <- GetAssayData(seu, assay = assay, slot= 'data')[genes.use, cell.set]
+    dat_tmp <- GetAssayData(seu, assay = assay, layer= 'data')[genes.use, cell.set]
     genes.expr.prop <- apply(dat_tmp, 1, function(x) mean(x>0))
     rm(dat_tmp)
   } else {
