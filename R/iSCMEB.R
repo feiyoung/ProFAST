@@ -275,7 +275,7 @@ drLouvain <- function(hZ, resolution=0.8){
 #' @param resolution 	an optional real, the value of the resolution parameter, use a value above (below) 1.0 if you want to obtain a larger (smaller) number of communities.
 #' @return Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} added by a \code{Harmony} compoonent (including the aligned embeddings and embeddings of batch effects) and a \code{Louvain} component (including the clusters).
 #' @export
-#' @importFrom harmony HarmonyMatrix
+#' @importFrom harmony RunHarmony
 #'
 
 RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
@@ -297,7 +297,7 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   
   set.seed(seed)
   tic <- proc.time()
-  hZ_harmony_FASTP <- HarmonyMatrix(matlist2mat(PRECASTObj@resList$FAST$hV), meta_data = data.frame(sample = sampleID),
+  hZ_harmony_FASTP <- RunHarmony(matlist2mat(PRECASTObj@resList$FAST$hV), meta_data = data.frame(sample = sampleID),
                                        vars_use = "sample", do_pca = F)
   toc <- proc.time()
   .logDiffTime(sprintf(paste0("%s Finish Harmony correction"), "*****"), t1 = tstart, verbose = verbose)

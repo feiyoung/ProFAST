@@ -1,8 +1,8 @@
 Package: ProFAST
 Type: Package
 Title: Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction
-Version: 1.7
-Date: 2025-12-14
+Version: 1.8
+Date: 2026-04-29
 Authors@R: 
     c(person(given = "Wei",
              family = "Liu",
