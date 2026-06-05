@@ -29,6 +29,10 @@ gene_embed_cpp <- function(X, ce_cell) {
     .Call(`_ProFAST_gene_embed_cpp`, X, ce_cell)
 }
 
+get_fixedNumber_neighbors <- function(x, number = 6L) {
+    .Call(`_ProFAST_get_fixedNumber_neighbors`, x, number)
+}
+
 #' @keywords internal
 #' @noRd
 #' 

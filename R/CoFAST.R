@@ -44,7 +44,7 @@ compute.AdjList <- function(
     if (tolower(type) == "fixed_distance") {
       if (tolower(platform) %in% c("st", "visium")) {
         AdjList <- pbapply::pblapply(
-          posList, PRECAST::getAdj_reg, platform = platform)
+          posList, getAdj_reg, platform = platform)
       } else {
         if (is.null(radius_vec)) {
           AdjList <- pbapply::pblapply(posList, function(x) {
@@ -59,7 +59,7 @@ compute.AdjList <- function(
         }
       }
     } else if (tolower(type) == "fixed_number") {
-      AdjList <- pbapply::pblapply(posList, PRECAST::getAdj_fixedNumber, ...)
+      AdjList <- pbapply::pblapply(posList, getAdj_fixedNumber, ...)
     } else {
       stop("AddAdjList: Unsupported adjacency  type \"", type, "\".")
     }

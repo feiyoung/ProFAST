@@ -17,3 +17,7 @@ Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} ad
 \description{
 Embedding alignment and clustering using the Harmony and Louvain based on the ebmeddings from FAST as well as determining the number of clusters.
 }
+\note{
+This function requires the 'harmony' package for batch correction. 
+      If not installed, please run: install.packages('harmony') or remotes::install_github('immunogenomics/harmony')
+}

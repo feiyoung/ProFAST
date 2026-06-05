@@ -275,7 +275,8 @@ drLouvain <- function(hZ, resolution=0.8){
 #' @param resolution 	an optional real, the value of the resolution parameter, use a value above (below) 1.0 if you want to obtain a larger (smaller) number of communities.
 #' @return Return a revised \code{PRECASTObj} object with slot \code{PRECASTObj@resList} added by a \code{Harmony} compoonent (including the aligned embeddings and embeddings of batch effects) and a \code{Louvain} component (including the clusters).
 #' @export
-#' @importFrom harmony RunHarmony
+#' @note This function requires the 'harmony' package for batch correction. 
+#'       If not installed, please run: install.packages('harmony') or remotes::install_github('immunogenomics/harmony')
 #'
 
 RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
@@ -285,6 +286,12 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   if(is.null(PRECASTObj@resList$FAST))
     stop("RunHarmonyLouvain: Check the argument: PRECASTObj!  The component FAST in PRECASTObj@resList is NULL! Please run FAST() first!")
   
+  # ========== check harmony ==========
+  if (!requireNamespace("harmony", quietly = TRUE)) {
+    stop("Package 'harmony' is required for batch correction in this function.\n",
+         "Please install it via: install.packages('harmony')")
+  }
+  # ====================================================
   
   seed <- PRECASTObj@parameterList$seed
   verbose <- PRECASTObj@parameterList$verbose
@@ -297,7 +304,7 @@ RunHarmonyLouvain <- function(PRECASTObj, resolution=0.5){
   
   set.seed(seed)
   tic <- proc.time()
-  hZ_harmony_FASTP <- RunHarmony(matlist2mat(PRECASTObj@resList$FAST$hV), meta_data = data.frame(sample = sampleID),
+  hZ_harmony_FASTP <- harmony::RunHarmony(matlist2mat(PRECASTObj@resList$FAST$hV), meta_data = data.frame(sample = sampleID),
                                        vars_use = "sample", do_pca = F)
   toc <- proc.time()
   .logDiffTime(sprintf(paste0("%s Finish Harmony correction"), "*****"), t1 = tstart, verbose = verbose)

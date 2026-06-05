@@ -1,7 +1,7 @@
 
 # generate man files
 # devtools::document()
-# R CMD check --as-cran ProFAST_1.7.tar.gz
+# R CMD check --as-cran ProFAST_1.9.tar.gz
 # R CMD check --use-valgrind ProFAST_1.5.tar.gz
 ## usethis::use_data(pbmc3k_subset)
 # pkgdown::build_site()
@@ -29,6 +29,98 @@ get_varfeature_fromSeurat <- function(seu, assay=NULL){
 }
 
 # Basic functions ---------------------------------------------------------
+getAdj_fixedNumber <- function(pos, number=6){
+  if(nrow(pos)< 6*4) stop("nrow of pos must be greater than 4*number!")
+  # require(Matrix)
+  Adj_sp <- get_fixedNumber_neighbors(pos, number)
+  return(Adj_sp)
+}
+
+
+
+#' @importFrom purrr discard keep
+find_neighbors <- function(pos, platform=c('ST', "Visium")) {
+  # require(purrr)
+  # require(S4Vectors)
+  if (tolower(platform) == "visium") {
+    ## Spots to left and right, two above, two below
+    offsets <- data.frame(x.offset=c(-2, 2, -1,  1, -1, 1),
+                          y.offset=c( 0, 0, -1, -1,  1, 1))
+  } else if (tolower(platform) == "st") {
+    ## L1 radius of 1 (spots above, right, below, and left)
+    offsets <- data.frame(x.offset=c( 0, 1, 0, -1),
+                          y.offset=c(-1, 0, 1,  0))
+  } else {
+    stop(".find_neighbors: Unsupported platform \"", platform, "\".")
+  }
+  
+  ## Get array coordinates (and label by index of spot in SCE)
+  colnames(pos) <- c("row", "col")
+  # pos <- DataFrame(pos) # reduce the dependency on S4Vector
+  pos <- as.data.frame(pos)
+  spot.positions <- pos
+  spot.positions$spot.idx <- seq_len(nrow(spot.positions))
+  
+  ## Compute coordinates of each possible spot neighbor
+  neighbor.positions <- merge(spot.positions, offsets)
+  neighbor.positions$x.pos <- neighbor.positions$col + neighbor.positions$x.offset
+  neighbor.positions$y.pos <- neighbor.positions$row + neighbor.positions$y.offset
+  
+  ## Select spots that exist at neighbor coordinates
+  neighbors <- merge(as.data.frame(neighbor.positions), 
+                     as.data.frame(spot.positions), 
+                     by.x=c("x.pos", "y.pos"), by.y=c("col", "row"),
+                     suffixes=c(".primary", ".neighbor"),
+                     all.x=TRUE)
+  
+  ## Shift to zero-indexing for C++
+  #neighbors$spot.idx.neighbor <- neighbors$spot.idx.neighbor - 1
+  
+  ## Group neighbor indices by spot 
+  ## (sort first for consistency with older implementation)
+  neighbors <- neighbors[order(neighbors$spot.idx.primary, 
+                               neighbors$spot.idx.neighbor), ]
+  df_j <- split(neighbors$spot.idx.neighbor, neighbors$spot.idx.primary)
+  df_j <- unname(df_j)
+  
+  ## Discard neighboring spots without spot data
+  ## This can be implemented by eliminating `all.x=TRUE` above, but
+  ## this makes it easier to keep empty lists for spots with no neighbors
+  ## (as expected by C++ code)
+  ## df_j <- map(df_j, function(nbrs) discard(nbrs, function(x) is.na(x)))
+  df_j <- lapply(df_j, function(nbrs) discard(nbrs, function(x) is.na(x)))
+  
+  ## Log number of spots with neighbors
+  n_with_neighbors <- length(keep(df_j, function(nbrs) length(nbrs) > 0))
+  message("Neighbors were identified for ", n_with_neighbors, " out of ",
+          nrow(pos), " spots.")
+  
+  n <- length(df_j) 
+  
+  D <- matrix(0,  nrow = n, ncol = n)
+  for (i in 1:n) {
+    if(length(df_j[[i]]) != 0)
+      D[i, df_j[[i]]] <- 1
+  }
+  ij <- which(D != 0, arr.ind = T)
+  ij
+}
+getAdj_reg <- function(pos, platform= "Visium"){
+  ij <- find_neighbors(pos, platform)
+  # library(Matrix)
+  n <- nrow(pos)
+  Adj_sp <- Matrix::sparseMatrix(ij[,1], ij[,2], x = 1, dims=c(n, n))
+  return(Adj_sp)
+}
+
+Add_embed <- function(embed, seu, embed_name='tSNE' , assay = "RNA"){
+  row.names(embed) <- colnames(seu)
+  colnames(embed) <- paste0(embed_name, 1:ncol(embed))
+  seu@reductions[[embed_name]] <- CreateDimReducObject(embeddings = embed, 
+                                                       key = paste0(toupper(embed_name),"_"), assay = assay)
+  seu
+}
+
 .logDiffTime <- function(main = "", t1 = NULL, verbose = TRUE, addHeader = FALSE,
                          t2 = Sys.time(), units = "mins", header = "*****",
                          tail = "elapsed.", precision = 3){
@@ -324,7 +416,6 @@ get_r2_mcfadden <- function(embeds, y){
 #' @references None
 #' @export
 #' @importFrom DR.SC getAdj_auto
-#' @importFrom PRECAST getAdj_reg getAdj_fixedNumber
 #' @importFrom Matrix sparseMatrix
 #' @examples
 #' data(CosMx_subset)
@@ -342,12 +433,12 @@ AddAdj <- function(pos, type="fixed_distance", platform=c("Others","Visium", "ST
    
     if(tolower(type)=='fixed_distance'){
       if(tolower(platform) %in% c("st", "visium")){
-        Adj <-  PRECAST::getAdj_reg(pos, platform=platform)
+        Adj <-  getAdj_reg(pos, platform=platform)
       }else{
         Adj <- getAdj_auto(pos, lower.med=neighbors-2, upper.med=neighbors+2,...)
       }
     }else if (tolower(type) == "fixed_number") {
-      Adj <- PRECAST::getAdj_fixedNumber(pos, number=neighbors)
+      Adj <- getAdj_fixedNumber(pos, number=neighbors)
     } else {
       stop("AddAdj: Unsupported adjacency  type \"", type, "\".")
     }
@@ -1071,7 +1162,6 @@ correct_genes_subsampleR <- function(XList, RList, HList, Tm, AdjList, subsample
 #' @details If \code{seuList_raw} is not equal \code{NULL} or \code{PRECASTObj@seuList} is not \code{NULL}, this function will remove the unwanted variations for all genes in \code{seuList_raw} object. Otherwise, only the the unwanted variation of genes in \code{PRECASTObj@seulist} will be removed. The former requires a big memory to be run, while the latter not. To speed up the computation when the number of spots is very large, we also provide a subsampling schema controlled by the arugment \code{subsample_rate}. When the total number of spots is larger than 80,000, this function will automatically draws 50,000 spots to calculate the paramters in the spatial linear model for removing unwanted variations. 
 #' @importFrom Matrix t sparseMatrix
 #' @importFrom Seurat DefaultAssay CreateSeuratObject `DefaultAssay<-` `Idents<-` SetAssayData
-#' @importFrom PRECAST Add_embed
 #' @import gtools
 #' @useDynLib ProFAST, .registration = TRUE
 #'

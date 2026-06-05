@@ -1,8 +1,8 @@
 Package: ProFAST
 Type: Package
 Title: Probabilistic Factor Analysis for Spatially-Aware Dimension Reduction
-Version: 1.8
-Date: 2026-04-29
+Version: 1.9
+Date: 2026-06-04
 Authors@R: 
     c(person(given = "Wei",
              family = "Liu",
@@ -25,17 +25,16 @@ Depends:
 Imports: 
     Rcpp (>= 1.0.10),
     furrr,
+    purrr,
     future,
     ggplot2,
     DR.SC,
     Matrix,
     mclust,
-    PRECAST,
     pbapply,
     irlba,
     Seurat,
     parallel,
-    harmony,
     methods,
     stats,
     utils
@@ -45,6 +44,8 @@ BugReports: https://github.com/feiyoung/ProFAST/issues
 Suggests: 
     knitr,
     rmarkdown,
+    harmony,
+    PRECAST,
     performance,
     nnet,
     biomaRt,

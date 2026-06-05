@@ -136,6 +136,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_fixedNumber_neighbors
+arma::sp_umat get_fixedNumber_neighbors(const arma::mat& x, int number);
+RcppExport SEXP _ProFAST_get_fixedNumber_neighbors(SEXP xSEXP, SEXP numberSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type number(numberSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_fixedNumber_neighbors(x, number));
+    return rcpp_result_gen;
+END_RCPP
+}
 // profast_g_cpp
 Rcpp:: List profast_g_cpp(const Rcpp::List& Xlist, const Rcpp::List& Adjlist, const arma::mat& nu_int, const arma::mat& W_int, const arma::mat& Lam_int, const arma::cube& Psi_int, const Rcpp::List& EvList, const int& maxIter, const double& epsLogLik, const bool& verbose, const bool& homo, const bool& Psi_diag);
 RcppExport SEXP _ProFAST_profast_g_cpp(SEXP XlistSEXP, SEXP AdjlistSEXP, SEXP nu_intSEXP, SEXP W_intSEXP, SEXP Lam_intSEXP, SEXP Psi_intSEXP, SEXP EvListSEXP, SEXP maxIterSEXP, SEXP epsLogLikSEXP, SEXP verboseSEXP, SEXP homoSEXP, SEXP Psi_diagSEXP) {
@@ -190,6 +202,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ProFAST_correct_genes", (DL_FUNC) &_ProFAST_correct_genes, 13},
     {"_ProFAST_pdistance_cpp", (DL_FUNC) &_ProFAST_pdistance_cpp, 3},
     {"_ProFAST_gene_embed_cpp", (DL_FUNC) &_ProFAST_gene_embed_cpp, 2},
+    {"_ProFAST_get_fixedNumber_neighbors", (DL_FUNC) &_ProFAST_get_fixedNumber_neighbors, 2},
     {"_ProFAST_profast_g_cpp", (DL_FUNC) &_ProFAST_profast_g_cpp, 12},
     {"_ProFAST_profast_p_cpp", (DL_FUNC) &_ProFAST_profast_p_cpp, 13},
     {NULL, NULL, 0}
